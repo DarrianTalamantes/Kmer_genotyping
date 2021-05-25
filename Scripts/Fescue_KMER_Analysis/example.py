@@ -17,10 +17,18 @@ def main():
 
     # does prescence counts in both progeny and parental directories
     progeny_kmers = prescencecount(filenames1, 2, filepath1)
-    parent_kmers = prescencecount(filenames2, 4, filepath2)
+    parent_kmers = prescencecount(filenames2, 1, filepath2)
 
     # Next step is use the progeny file to filter the parent file or filter parent file
+    parents_filtered = dict((key, parent_kmers[key]) for key in [k for k in progeny_kmers.keys() if k in parent_kmers])
+    print(len(progeny_kmers))
+    print(len(parents_filtered))
+    # print(parents_filtered.values())
+
     # Then keep ones that only appear once in the new parent file
+    parents_filtered_more = filter_for_rare(parents_filtered)
+    print(len(parents_filtered_more))
+
 
 # method imports files
 def importfile(file):
@@ -40,12 +48,13 @@ def prescencecount(filenames, cutoff, filepath):
                 freq[kmer] += 1
             else:
                 freq[kmer] = 1
-
     # This is creating a second dictionary that will cut off any kmer found less than x times
     d = dict((k, v) for k, v in freq.items() if v >= cutoff)
     # print(d.items())
-    print(len(d))
-    print(len(freq))
-    return(d)
+    return d
 
+
+def filter_for_rare(dic_file):
+    d = dict((k, v) for k, v in dic_file.items() if v <= 1)
+    return d
 main()
