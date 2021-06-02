@@ -34,6 +34,7 @@ source activate $conda_env
 # conda install -c anaconda numpy=1.19.2
 # conda install -c conda-forge matplotlib=3.4.2
 # conda install -c anaconda pandas=1.1.5
+#conda install -c conda-forge argparse=1.4.0
 # Run program
 
 # Filters for progeny kmers that appear at least x times
