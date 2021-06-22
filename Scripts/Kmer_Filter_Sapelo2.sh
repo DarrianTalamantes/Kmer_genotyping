@@ -5,9 +5,9 @@
 #SBATCH --ntasks=1
 #SBATCH  --nodes=1 
 #SBATCH  --cpus-per-task=10
-#SBATCH --time=72:00:00
+#SBATCH --time=168:00:00
 #SBATCH --export=NONE
-#SBATCH --mem=690gb
+#SBATCH --mem=800gb
 #SBATCH --mail-user=drt83172@uga.edu
 #SBATCH --mail-type=END,FAIL
 #SBATCH --output=/scratch/drt83172/Wallace_lab/TallFescue/Scripts/OutFiles/%x_%j.out 
@@ -66,14 +66,14 @@ if [ ! -e $Parent_stage_2 ] ; then mkdir $Parent_stage_2; fi
 # Run program
 
 # Filters for progeny kmers that appear at least x times
-python upper_lower_filter.py -k $Progeny_KMERS -l 6 -s $InterFiles/kmer_progeny_filter1.txt
+# python upper_lower_filter.py -k $Progeny_KMERS -l 6 -s $InterFiles/kmer_progeny_filter1.txt
 # Need to filter one parent file at a time using script 2
 >$InterFiles/DeleteMe.txt
-for i in $(ls $Progeny_KMERS | cut -d . -f 1)
+for i in $(ls $Parent_KMERS | cut -d . -f 1)
 do
-echo "python filter_one_dic_using_another.py -p $Progeny_KMERS/${i}.txt -c $InterFiles/kmer_progeny_filter1.txt -s $Parent_stage_2/${i}Stage2.txt" >> $InterFiles/DeleteMe.txt
+echo "python filter_one_dic_using_another.py -p $Parent_KMERS/${i}.txt -c $InterFiles/kmer_progeny_filter1.txt -s $Parent_stage_2/${i}_Stage2.txt" >> $InterFiles/DeleteMe.txt
 done
-cat $InterFiles/DeleteMe.txt | parallel --jobs 4 --progress
+cat $InterFiles/DeleteMe.txt | parallel --jobs 3 --progress
 # use script one on second stage parent files
 python upper_lower_filter.py -k $Parent_stage_2 -u 1 -s $Final_Kmers/usefull_kmers.txt
  
