@@ -7,7 +7,7 @@
 #SBATCH  --cpus-per-task=10
 #SBATCH --time=168:00:00
 #SBATCH --export=NONE
-#SBATCH --mem=800gb
+#SBATCH --mem=850gb
 #SBATCH --mail-user=drt83172@uga.edu
 #SBATCH --mail-type=END,FAIL
 #SBATCH --output=/scratch/drt83172/Wallace_lab/TallFescue/Scripts/OutFiles/%x_%j.out 
@@ -66,7 +66,7 @@ if [ ! -e $Parent_stage_2 ] ; then mkdir $Parent_stage_2; fi
 # Run program
 
 # Filters for progeny kmers that appear at least x times
-# python upper_lower_filter.py -k $Progeny_KMERS -l 6 -s $InterFiles/kmer_progeny_filter1.txt
+python upper_lower_filter.py -k $Progeny_KMERS -l 6 -s $InterFiles/kmer_progeny_filter1.txt
 # Need to filter one parent file at a time using script 2
 >$InterFiles/DeleteMe.txt
 for i in $(ls $Parent_KMERS | cut -d . -f 1)
