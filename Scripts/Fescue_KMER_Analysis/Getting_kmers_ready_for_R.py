@@ -14,13 +14,12 @@ def main():
 
     filtered_kmers = dict()
     # creates a set of the keys that are found in both these dictionaries
-    kmer_file.intersection(usefull_kmer_list)
     for key in usefull_kmer_list:
         if key in kmer_file.keys():
             d = {key : kmer_file[key]}
             filtered_kmers.update(d)
         else:
-            d = {key : kmer_file[key]}
+            d = {key : 0}
             filtered_kmers.update(d)
 
     # The code below keeps the values for d while filtering the keys for d using progeny_kmers
