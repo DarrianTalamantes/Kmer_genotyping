@@ -120,10 +120,14 @@ if [ ! -e $R_outputs ] ; then mkdir $R_outputs; fi
 # done
 # cat $InterFiles/WipeMe.txt | parallel --jobs 4 --progress
 # # commands are a directory for R ready parents and then R ready progeny, then output for parents and output for progeny.
-# # R script only works in R studio and possibly on local computer. Does not work in sapelo.
+# # R script only works in R studio and possibly on local computer. Does not work in sapelo. SImply add the outputs into sapelo if wanting to run on sapelo2.
 # Rscript --vanilla Kmer_analysis.R /home/drt83172/Documents/Tall_fescue/Usefull_Kmers/Parents /home/drt83172/Documents/Tall_fescue/Usefull_Kmers/Progeny $R_outputs/R_parents.txt $R_outputs/R_progeny.txt
-python Score_Table_creation.py -p $R_outputs/R_parents.txt -c $R_outputs/R_progeny.txt -s $R_outputs/Score_table.csv
+
+# python Score_Table_creation.py -p $R_outputs/R_parents.txt -c $R_outputs/R_progeny.txt -s $R_outputs/Score_table.csv
 # # This next code is to change the key we were given by flex seq to get know parents and progeny maternal pairs 
 # # cat Parent_progeny.csv | cut -d "," -f 2 | cut -d "-" -f 1 > half_key_parents.txt
 # # cat Parent_progeny.csv | cut -d "," -f 5 | cut -d "_" -f 1-17 | sed s'/L002/L002_KMERS_Rready.txt/'g > key_progeny_half.txt
-
+# # Run this R script next with the score table output and the key edited with the code above
+# Score _analysis.R
+# # Output of this R_ script will be used in the following python script to make a list of progeny and their parents
+python Progeny_Parent_Finder.py -i -c -s
