@@ -1,20 +1,75 @@
 import numpy as np
 import argparse
 import pandas as pd
+import subprocess
 
 
 def main():
     parse_args()
+    # # importing data
     centers = import_data("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/All_centers.txt")
     predicted = import_data("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/Predicted_Parents.txt")
-    found_parents = parent_finder(centers, predicted)
-    found_parents.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents.csv')
-    usable_parents = find_usable_parents(found_parents)
-    usable_parents.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents.csv')
+    
+    # # Step one use imported files to make a list of predicted parents
+    found_parents_genetics = parent_finder(centers, predicted)
+    found_parents_genetics.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv')
+    usable_parents_genetics = find_usable_parents(found_parents_genetics)
+    usable_parents_genetics.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_genetics.csv')
+
+    # # Confirms genetic data with maternal list and throws out those that dont work with both
+    double_confirmed_parents = maternal_list_confirmer(found_parents_genetics)
+    double_confirmed_parents.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_double.csv')
+    usable_double_confirmed = find_usable_parents(double_confirmed_parents)
+    usable_double_confirmed.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_double.csv')
+
+    # # adds maternal list to genetic data
+    maternal_list_added = maternal_list_adder(found_parents_genetics)
+    maternal_list_added.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_mat_added.csv')
+    usable_maternal_list_added = find_usable_parents(maternal_list_added)
+    usable_maternal_list_added.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_mat_added.csv')
+
+# # This method takes the maternal list and will add it in without confirming it with the genetics
+def maternal_list_adder(genetic_list):
+    genetic_list_array = genetic_list.to_numpy()
+    progeny_names = genetic_list.index
+    for row in range(len(genetic_list_array)):
+        temp = progeny_names[row]
+        parent = temp[0:3]
+        for col in range(len(genetic_list_array[0])):
+            if genetic_list_array[row][col] == int(parent):
+                break
+            elif genetic_list_array[row][col] == 0:
+                genetic_list_array[row][col] = parent
+                genetic_list_array[row][16] = 99
+                break
+
+    end_product = pd.DataFrame(genetic_list_array, index=genetic_list.index)
+    print(end_product)
+    return end_product
+
+
+def maternal_list_confirmer(genetic_list):
+    genetic_list_array = genetic_list.to_numpy()
+    progeny_names = genetic_list.index
+    for row in range(len(genetic_list_array)):
+        temp = progeny_names[row]
+        parent = temp[0:3]
+        x = 0
+        for col in range(len(genetic_list_array[0])):
+            if genetic_list_array[row][col] == int(parent):
+                x = 1
+                break
+        if x != 1:
+            for col in range(len(genetic_list_array[0])):
+                genetic_list_array[row][col] = 0
+
+    end_product = pd.DataFrame(genetic_list_array, index=genetic_list.index)
+    print(end_product)
+    return end_product
 
 
 # # This method takes an input file of the group centers and a file listing progeny sorted into groups 1 or 2 for
-# # each parent. It outputs a dataframe that shows the predicted parents for each progeny.
+# # each parent. It outputs a dataframe that shows the predicted parents for each progeny based only on genetics.
 def parent_finder(centers, predicted):
     centers_array = centers.to_numpy()
     predicted_array = predicted.to_numpy()
@@ -22,25 +77,14 @@ def parent_finder(centers, predicted):
     # print(predicted.columns[0])
     # print(predicted.index[0])
     true_parents = np.zeros((len(predicted_array), len(predicted_array[0])), dtype=int)
-    # # This loop is to add the maternal parents to everything
-    maternal = predicted.index
-    for row in range(len(maternal)):
-        temp = str(maternal[row])
-        known = temp[0:3]
-        if known == 302:
-            true_parents[row][0] = 303
-        elif known == 303:
-            true_parents[row][0] = 302
-        else:
-            true_parents[row][0] = int(known)
     # # This loop adds our predicted parents
     for parent in range((len(centers.columns))):
         parent_name = centers.columns[parent]
         if parent_name == "302":
-            print("found a 302")
+            # print("found a 302")
             parent_name = 303
         elif parent_name == "303":
-            print("found a 303")
+            # print("found a 303")
             parent_name = 302
         if centers_array[0][parent] > centers_array[1][parent] and centers_array[0][parent] > centers_array[2][parent] and centers_array[0][parent] > centers_array[3][parent]:
             group = 1
@@ -59,7 +103,6 @@ def parent_finder(centers, predicted):
                             true_parents[progeny][i] = parent_name
                             break
     end_product = pd.DataFrame(true_parents, index=predicted.index)
-    print(end_product)
     return end_product
 
     # print(progeny, predicted_array[progeny][parent])
