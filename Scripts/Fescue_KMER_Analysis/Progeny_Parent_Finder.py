@@ -3,30 +3,109 @@ import argparse
 import pandas as pd
 import subprocess
 
-
 def main():
+    # # use line below to test without redoing long step
+    # best_parents = pd.read_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv', index_col=0)
     parse_args()
-    # # importing data
+    # # Run R the first time to get All_centers.txt and Predicted_Parents.txt
+    # # Args are random seed, files 1-4
+    subprocess.call(['Rscript', '/home/drt83172/Documents/Tall_fescue/Kmer_analyses/Scripts/Kmer_genotyping/Scripts/Score _analysis_auto.R', "10", "/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/Score_table.csv", "/home/drt83172/Documents/Tall_fescue/half_key_parents.txt", "/home/drt83172/Documents/Tall_fescue/half_key_progeny.txt", "/home/drt83172/Documents/Tall_fescue/progeny_key.csv"])
+
+    # # importing data for the first time
     centers = import_data("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/All_centers.txt")
     predicted = import_data("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/Predicted_Parents.txt")
-    
-    # # Step one use imported files to make a list of predicted parents
-    found_parents_genetics = parent_finder(centers, predicted)
-    found_parents_genetics.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv')
-    usable_parents_genetics = find_usable_parents(found_parents_genetics)
+
+    # # Here we run the k-means grouping "resamples" amount of times and only keep ones that appear 90% or more of those times
+    resamples = 100
+    best_parents = resampling_kmeans(centers, predicted, resamples)
+    best_parents.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv')
+    usable_parents_genetics = find_usable_parents(best_parents)
     usable_parents_genetics.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_genetics.csv')
 
     # # Confirms genetic data with maternal list and throws out those that dont work with both
-    double_confirmed_parents = maternal_list_confirmer(found_parents_genetics)
+    double_confirmed_parents = maternal_list_confirmer(best_parents)
     double_confirmed_parents.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_double.csv')
     usable_double_confirmed = find_usable_parents(double_confirmed_parents)
     usable_double_confirmed.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_double.csv')
 
     # # adds maternal list to genetic data
-    maternal_list_added = maternal_list_adder(found_parents_genetics)
+    maternal_list_added = maternal_list_adder(best_parents)
     maternal_list_added.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_mat_added.csv')
     usable_maternal_list_added = find_usable_parents(maternal_list_added)
     usable_maternal_list_added.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_mat_added.csv')
+
+
+
+# # This method translates between column numbers and parent name
+# Input "True" if you are using a key first and anything else if using the value first
+def column_finder(input, switcher):
+    input = str(input)
+    dic = {
+        "301": "0",
+        "302": "1",
+        "303": "2",
+        "304": "3",
+        "305": "4",
+        "306": "5",
+        "307": "6",
+        "308": "7",
+        "310": "8",
+        "312": "9",
+        "313": "10",
+        "314": "11",
+        "315": "12",
+        "316": "13",
+        "318": "14",
+        "319": "15",
+        "320": "16",
+    }
+    if switcher == True:
+        column = dic[input]
+    else:
+        column = list(dic.keys())[list(dic.values()).index(input)]
+
+    return column
+
+
+# # This method uses the parent finder 100 times and only keeps progeny parent pairs with statistical significance.
+def resampling_kmeans(centers, predicted, resmaples):
+    found_parents_genetics = parent_finder(centers, predicted)
+    resample = np.zeros((len(found_parents_genetics), len(found_parents_genetics.columns)), dtype=int)
+    beat_this = resmaples*.9
+    for seed in range(resmaples):
+        subprocess.call(['Rscript',
+                         '/home/drt83172/Documents/Tall_fescue/Kmer_analyses/Scripts/Kmer_genotyping/Scripts/Score _analysis_auto.R',
+                         str(seed), "/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/Score_table.csv",
+                         "/home/drt83172/Documents/Tall_fescue/half_key_parents.txt",
+                         "/home/drt83172/Documents/Tall_fescue/half_key_progeny.txt",
+                         "/home/drt83172/Documents/Tall_fescue/progeny_key.csv"])
+        centers = import_data("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/All_centers.txt")
+        predicted = import_data("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/Predicted_Parents.txt")
+        found_parents_genetics = parent_finder(centers, predicted)
+        found_parents_genetics_array = found_parents_genetics.to_numpy()
+        for row in range(len(resample)):
+            for col in range(len(resample[0])):
+                predicted_parent = found_parents_genetics_array[row][col]
+                if predicted_parent == 0:
+                    break
+                parent_column = column_finder(predicted_parent, True)
+                parent_column = int(parent_column)
+                resample[row][parent_column] += 1
+    resample_final = np.zeros((len(found_parents_genetics), len(found_parents_genetics.columns)), dtype=int)
+    for row in range(len(resample)):
+        for col in range(len(resample[0])):
+            consistency = resample[row][col]
+            if consistency >= beat_this:
+                predicted_parent = column_finder(col, 2)
+                for position in range(len(resample_final[0])):
+                    position2 = resample_final[row][position]
+                    if position2 == 0:
+                        print(predicted_parent)
+                        resample_final[row][position] = predicted_parent
+                        break
+    resample_final = pd.DataFrame(resample_final, index=found_parents_genetics.index, columns=found_parents_genetics.columns)
+    return resample_final
+
 
 # # This method takes the maternal list and will add it in without confirming it with the genetics
 def maternal_list_adder(genetic_list):
@@ -39,10 +118,9 @@ def maternal_list_adder(genetic_list):
             if genetic_list_array[row][col] == int(parent):
                 break
             elif genetic_list_array[row][col] == 0:
-                genetic_list_array[row][col] = parent
-                genetic_list_array[row][16] = 99
+                genetic_list_array[row][col] = int(parent)
                 break
-
+    print(genetic_list_array)
     end_product = pd.DataFrame(genetic_list_array, index=genetic_list.index)
     print(end_product)
     return end_product

@@ -6,17 +6,15 @@ library(Rfast)
 library(car)
 
 # Argument inputs
-args = commandArgs(trailingOnly=TRUE)
-
-
+Args <- commandArgs(trailingOnly=TRUE)
 # input variables will need to be a number for the seed and all input files. 
-Scores <- read.table ("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/Score_table.csv", sep = ",", header = TRUE, row.names = 1)
-half_key_progeny <- read.table ("/home/drt83172/Documents/Tall_fescue/half_key_parents.txt", sep = "\t", header = TRUE)
-half_key_parents <- read.table ("/home/drt83172/Documents/Tall_fescue/half_key_progeny.txt", sep = "\t", header = TRUE)
-file_to_feild_key <- read.table("/home/drt83172/Documents/Tall_fescue/progeny_key.csv", sep = ",", header = TRUE)
+Scores <- read.table (Args[2], sep = ",", header = TRUE, row.names = 1)
+half_key_parents <- read.table (Args[3], sep = "\t", header = TRUE)
+half_key_progeny <- read.table (Args[4], sep = "\t", header = TRUE)
+file_to_feild_key <- read.table(Args[5], sep = ",", header = TRUE)
 
 # # Organizing data 
-key <- cbind(half_key_progeny,half_key_parents)
+key <- cbind(half_key_parents,half_key_progeny)
 colnames(file_to_feild_key)[1] <- "Progeny_feild"
 file_to_feild_key <- tibble::column_to_rownames(file_to_feild_key, "FileName")
 
@@ -54,7 +52,7 @@ colnames(All_centers) <- colnames(z_scores)
 Predicted_Parents <- z_scores
 for (i in 1:ncol(z_scores)){
   Predicted_Parent <- subset(z_scores[,i, drop = FALSE])
-  set.seed(10)
+  set.seed(Args[1])
   clusters <- kmeans(z_scores[,i],4)
   Predicted_Parents[i]=clusters$cluster
   All_centers[i] <- clusters$centers
