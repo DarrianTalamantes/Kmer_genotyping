@@ -6,7 +6,9 @@ import subprocess
 def main():
     # # use line below to test without redoing long step
     # best_parents = pd.read_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv', index_col=0)
+    # print(best_parents.iloc[2969])
     parse_args()
+
     # # Run R the first time to get All_centers.txt and Predicted_Parents.txt
     # # Args are random seed, files 1-4
     subprocess.call(['Rscript', '/home/drt83172/Documents/Tall_fescue/Kmer_analyses/Scripts/Kmer_genotyping/Scripts/Score _analysis_auto.R', "10", "/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/Score_table.csv", "/home/drt83172/Documents/Tall_fescue/half_key_parents.txt", "/home/drt83172/Documents/Tall_fescue/half_key_progeny.txt", "/home/drt83172/Documents/Tall_fescue/progeny_key.csv"])
@@ -14,25 +16,33 @@ def main():
     # # importing data for the first time
     centers = import_data("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/All_centers.txt")
     predicted = import_data("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/Predicted_Parents.txt")
+    dead = import_data_csv("/home/drt83172/Documents/Tall_fescue/Plant_Info/Dead_Progeny.csv")
 
-    # # Here we run the k-means grouping "resamples" amount of times and only keep ones that appear 90% or more of those times
+    # # # Here we run the k-means grouping "resamples" amount of times and only keep ones that appear 90% or more of those times
     resamples = 100
     best_parents = resampling_kmeans(centers, predicted, resamples)
     best_parents.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv')
-    usable_parents_genetics = find_usable_parents(best_parents)
+    usable_parents_genetics = find_usable_parents(best_parents, dead)
     usable_parents_genetics.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_genetics.csv')
+    print(len(usable_parents_genetics), "genetics only")
 
     # # Confirms genetic data with maternal list and throws out those that dont work with both
+    best_parents = pd.read_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv', index_col=0)
+    # print(best_parents.iloc[2969])
     double_confirmed_parents = maternal_list_confirmer(best_parents)
     double_confirmed_parents.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_double.csv')
-    usable_double_confirmed = find_usable_parents(double_confirmed_parents)
+    usable_double_confirmed = find_usable_parents(double_confirmed_parents, dead)
     usable_double_confirmed.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_double.csv')
+    print(len(usable_double_confirmed), "double")
 
     # # adds maternal list to genetic data
+    best_parents = pd.read_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv', index_col=0)
+    # print(best_parents.iloc[2969])
     maternal_list_added = maternal_list_adder(best_parents)
     maternal_list_added.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_mat_added.csv')
-    usable_maternal_list_added = find_usable_parents(maternal_list_added)
+    usable_maternal_list_added = find_usable_parents(maternal_list_added, dead)
     usable_maternal_list_added.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_mat_added.csv')
+    print(len(usable_maternal_list_added), "maternal list added")
 
 
 
@@ -100,7 +110,6 @@ def resampling_kmeans(centers, predicted, resmaples):
                 for position in range(len(resample_final[0])):
                     position2 = resample_final[row][position]
                     if position2 == 0:
-                        print(predicted_parent)
                         resample_final[row][position] = predicted_parent
                         break
     resample_final = pd.DataFrame(resample_final, index=found_parents_genetics.index, columns=found_parents_genetics.columns)
@@ -120,9 +129,7 @@ def maternal_list_adder(genetic_list):
             elif genetic_list_array[row][col] == 0:
                 genetic_list_array[row][col] = int(parent)
                 break
-    print(genetic_list_array)
     end_product = pd.DataFrame(genetic_list_array, index=genetic_list.index)
-    print(end_product)
     return end_product
 
 
@@ -142,7 +149,6 @@ def maternal_list_confirmer(genetic_list):
                 genetic_list_array[row][col] = 0
 
     end_product = pd.DataFrame(genetic_list_array, index=genetic_list.index)
-    print(end_product)
     return end_product
 
 
@@ -187,7 +193,8 @@ def parent_finder(centers, predicted):
 
 
 # # uses the output of parent_finder method to expunge progeny who do not have exactly 2 parents assigned
-def find_usable_parents(predicted_parents):
+# # Also gets rid of all dead progeny
+def find_usable_parents(predicted_parents, dead):
     not_enough_parents = set()
     too_many_parents = set()
     for col in range(1, 3):
@@ -203,11 +210,25 @@ def find_usable_parents(predicted_parents):
     usless_parents = list(usless_parents)
     for i in range(len(usless_parents)):
         predicted_parents = predicted_parents.drop(usless_parents[i])
+
+    # # Uses list of dead progeny and gets rid of them
+    deadlist = np.zeros((len(dead), 1), dtype='U100')
+    for i in range(len(deadlist)):
+        deadlist[i] = dead[i][0] + "-" + dead[i][1]
+    for i in range(len(deadlist)):
+        dead_one = deadlist[i]
+        dead_one = dead_one[-1]
+        if dead_one not in usless_parents:
+            predicted_parents = predicted_parents.drop(dead_one)
     return predicted_parents
 
 
 def import_data(file):
     data = pd.read_csv(file, sep=' ', header=0, na_values=" ")
+    return data
+
+def import_data_csv(file):
+    data = np.loadtxt(file, delimiter=",", dtype=str)
     return data
 
 
