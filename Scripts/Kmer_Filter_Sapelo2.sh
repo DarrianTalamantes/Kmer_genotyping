@@ -91,8 +91,8 @@ if [ ! -e $R_outputs ] ; then mkdir $R_outputs; fi
 # if [ ! -e $Score_table ] ; then mkdir $Score_table; fi
 
 
-# Run program
-
+# # Run program
+# 
 # # Filters for progeny kmers that appear at least x times
 # python upper_lower_filter.py -k $Progeny_KMERS -l 6 -s $InterFiles/kmer_progeny_filter1.txt
 # # Need to filter one parent file at a time using script 2
@@ -122,7 +122,7 @@ if [ ! -e $R_outputs ] ; then mkdir $R_outputs; fi
 # # commands are a directory for R ready parents and then R ready progeny, then output for parents and output for progeny.
 # # R script only works in R studio and possibly on local computer. Does not work in sapelo. SImply add the outputs into sapelo if wanting to run on sapelo2.
 # Rscript --vanilla Kmer_analysis.R /home/drt83172/Documents/Tall_fescue/Usefull_Kmers/Parents /home/drt83172/Documents/Tall_fescue/Usefull_Kmers/Progeny $R_outputs/R_parents.txt $R_outputs/R_progeny.txt
-
+# 
 # python Score_Table_creation.py -p $R_outputs/R_parents.txt -c $R_outputs/R_progeny.txt -s $R_outputs/Score_table.csv
 # # This next code is to change the key we were given by flex seq to get know parents and progeny maternal pairs 
 # # cat Parent_progeny.csv | cut -d "," -f 2 | cut -d "-" -f 1 > half_key_parents.txt

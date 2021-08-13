@@ -11,43 +11,105 @@ def main():
 
     # # Run R the first time to get All_centers.txt and Predicted_Parents.txt
     # # Args are random seed, files 1-4
-    subprocess.call(['Rscript', '/home/drt83172/Documents/Tall_fescue/Kmer_analyses/Scripts/Kmer_genotyping/Scripts/Score _analysis_auto.R', "10", "/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/Score_table.csv", "/home/drt83172/Documents/Tall_fescue/half_key_parents.txt", "/home/drt83172/Documents/Tall_fescue/half_key_progeny.txt", "/home/drt83172/Documents/Tall_fescue/progeny_key.csv"])
+    # subprocess.call(['Rscript', '/home/drt83172/Documents/Tall_fescue/Kmer_analyses/Scripts/Kmer_genotyping/Scripts/Score _analysis_auto.R', "10", "/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/Score_table.csv", "/home/drt83172/Documents/Tall_fescue/half_key_parents.txt", "/home/drt83172/Documents/Tall_fescue/half_key_progeny.txt", "/home/drt83172/Documents/Tall_fescue/progeny_key.csv"])
 
     # # importing data for the first time
-    centers = import_data("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/All_centers.txt")
-    predicted = import_data("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/Predicted_Parents.txt")
+    # centers = import_data("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/All_centers.txt")
+    # predicted = import_data("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/Predicted_Parents.txt")
     dead = import_data_csv("/home/drt83172/Documents/Tall_fescue/Plant_Info/Dead_Progeny.csv")
 
-    # # # Here we run the k-means grouping "resamples" amount of times and only keep ones that appear 90% or more of those times
-    resamples = 100
-    best_parents = resampling_kmeans(centers, predicted, resamples)
-    best_parents.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv')
-    usable_parents_genetics = find_usable_parents(best_parents, dead)
-    usable_parents_genetics.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_genetics.csv')
-    print(len(usable_parents_genetics), "genetics only")
+    # # Here we run the k-means grouping "resamples" amount of times and only keep ones that appear 90% or more of those times
+    # resamples = 100
+    # best_parents = resampling_kmeans(centers, predicted, resamples)
+    # best_parents.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv')
+    # usable_parents_genetics = find_usable_parents(best_parents, dead)
+    # usable_parents_genetics.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_genetics.csv')
+    # print(len(usable_parents_genetics), "genetics only")
 
-    # # Confirms genetic data with maternal list and throws out those that dont work with both
-    best_parents = pd.read_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv', index_col=0)
-    # print(best_parents.iloc[2969])
-    double_confirmed_parents = maternal_list_confirmer(best_parents)
-    double_confirmed_parents.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_double.csv')
-    usable_double_confirmed = find_usable_parents(double_confirmed_parents, dead)
-    usable_double_confirmed.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_double.csv')
-    print(len(usable_double_confirmed), "double")
+    # # # Confirms genetic data with maternal list and throws out those that dont work with both
+    # best_parents = pd.read_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv', index_col=0)
+    # # print(best_parents.iloc[2969])
+    # double_confirmed_parents = maternal_list_confirmer(best_parents)
+    # double_confirmed_parents.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_double.csv')
+    # usable_double_confirmed = find_usable_parents(double_confirmed_parents, dead)
+    # usable_double_confirmed.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_double.csv')
+    # print(len(usable_double_confirmed), "double")
+    #
+    # # # adds maternal list to genetic data
+    # best_parents = pd.read_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv', index_col=0)
+    # # print(best_parents.iloc[2969])
+    # maternal_list_added = maternal_list_adder(best_parents)
+    # maternal_list_added.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_mat_added.csv')
+    # usable_maternal_list_added = find_usable_parents(maternal_list_added, dead)
+    # usable_maternal_list_added.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_mat_added.csv')
+    # print(len(usable_maternal_list_added), "maternal list added")
 
-    # # adds maternal list to genetic data
-    best_parents = pd.read_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv', index_col=0)
-    # print(best_parents.iloc[2969])
-    maternal_list_added = maternal_list_adder(best_parents)
-    maternal_list_added.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_mat_added.csv')
-    usable_maternal_list_added = find_usable_parents(maternal_list_added, dead)
-    usable_maternal_list_added.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_mat_added.csv')
-    print(len(usable_maternal_list_added), "maternal list added")
+    # # Uses the usable data frames created from find_usable_parents(double confirmed method to make a list of reciprical parents
+    # # Semi unfinished
+    # double_usable = pd.read_csv(
+    #     "/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_double.csv", index_col=0)
+    # reciprocal(double_usable)
 
+    # # I use this to test how moving the cutoff value in the resampling method effects the result
+    best_parents = pd.read_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv',
+                               index_col=0)
+    resample = np.loadtxt("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/consistancy.txt", dtype=float)
+    beat_this = .85
+    found_parents = quick_cutoff(resample, beat_this, best_parents)
+    usable_parents_genetics = find_usable_parents(found_parents, dead)
+
+def quick_cutoff(resample, beat_this, best_parents):
+    resample_final = np.zeros((len(resample), len(resample[0])), dtype=int)
+    # # This is where we make cut offs from the resample table and create the final resample table that we use after this.
+    for row in range(len(resample)):
+        for col in range(len(resample[0])):
+            consistency = resample[row][col]
+            if consistency >= beat_this:
+                predicted_parent = column_finder(col, 2)
+                for position in range(len(resample_final[0])):
+                    position2 = resample_final[row][position]
+                    if position2 == 0:
+                        resample_final[row][position] = predicted_parent
+                        break
+    resample_final = pd.DataFrame(resample_final, index=best_parents.index,
+                                  columns=best_parents.columns)
+    return resample_final
+
+
+# # Finding the reciprocal pairs of progeny. Must use double confirmed data to ensure we have data with maternal parents known
+def reciprocal(predicted_parents):
+    progeny_names = predicted_parents.index
+    predicted_parents_array = predicted_parents.to_numpy()
+    known_parent = np.zeros((len(progeny_names), 1), dtype='U100')
+
+    for i in range(len(predicted_parents_array)):
+        known_parent[i] = str(predicted_parents_array[i][0]) + "-" + str(predicted_parents_array[i][1])
+    known_parent_set = set()
+    for i in range(len(predicted_parents_array)):
+        known_one = known_parent[i]
+        known_one = known_one[-1]
+        known_parent[i] = known_one
+        known_parent_set.add(known_one)
+
+    reciprocal_parents_set = set()
+    for i in range(len(known_parent)):
+        known_one = known_parent[i]
+        known_one = known_one[-1]
+        reciprocal = known_one[4:7] + known_one[3] + known_one[0:3]
+        reciprocal_parents_set.add(reciprocal)
+
+    for i in range(len(known_parent)):
+        pair = known_parent[i]
+        pair = pair[-1]
+        if pair not in reciprocal_parents_set:
+            reciprocal_parents_set.add(pair)
+
+    return reciprocal_parents_set
+    # setOfMarks = set(listOfMarks)
 
 
 # # This method translates between column numbers and parent name
-# Input "True" if you are using a key first and anything else if using the value first
+# # Input "True" if you are using a key first and anything else if using the value first
 def column_finder(input, switcher):
     input = str(input)
     dic = {
@@ -81,7 +143,7 @@ def column_finder(input, switcher):
 def resampling_kmeans(centers, predicted, resmaples):
     found_parents_genetics = parent_finder(centers, predicted)
     resample = np.zeros((len(found_parents_genetics), len(found_parents_genetics.columns)), dtype=int)
-    beat_this = resmaples*.9
+    beat_this = resmaples*.8
     for seed in range(resmaples):
         subprocess.call(['Rscript',
                          '/home/drt83172/Documents/Tall_fescue/Kmer_analyses/Scripts/Kmer_genotyping/Scripts/Score _analysis_auto.R',
@@ -102,6 +164,7 @@ def resampling_kmeans(centers, predicted, resmaples):
                 parent_column = int(parent_column)
                 resample[row][parent_column] += 1
     resample_final = np.zeros((len(found_parents_genetics), len(found_parents_genetics.columns)), dtype=int)
+    # # This is where we make cut offs from the resample table and create the final resample table that we use after this.
     for row in range(len(resample)):
         for col in range(len(resample[0])):
             consistency = resample[row][col]
@@ -113,6 +176,7 @@ def resampling_kmeans(centers, predicted, resmaples):
                         resample_final[row][position] = predicted_parent
                         break
     resample_final = pd.DataFrame(resample_final, index=found_parents_genetics.index, columns=found_parents_genetics.columns)
+    np.savetxt("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/consistancy.txt", resample, delimiter="\t")
     return resample_final
 
 
@@ -208,10 +272,13 @@ def find_usable_parents(predicted_parents, dead):
                     too_many_parents.add(predicted_parents.index[row])
     usless_parents = not_enough_parents.symmetric_difference(too_many_parents)  # the amount usless here is correct
     usless_parents = list(usless_parents)
+    print(len(too_many_parents), " have too many parents")
+    print(len(not_enough_parents), " have too few parents")
     for i in range(len(usless_parents)):
         predicted_parents = predicted_parents.drop(usless_parents[i])
 
     # # Uses list of dead progeny and gets rid of them
+    deads = 0
     deadlist = np.zeros((len(dead), 1), dtype='U100')
     for i in range(len(deadlist)):
         deadlist[i] = dead[i][0] + "-" + dead[i][1]
@@ -220,6 +287,8 @@ def find_usable_parents(predicted_parents, dead):
         dead_one = dead_one[-1]
         if dead_one not in usless_parents:
             predicted_parents = predicted_parents.drop(dead_one)
+            deads += 1
+    print(deads, " got taken out for being dead af")
     return predicted_parents
 
 
