@@ -124,10 +124,21 @@ if [ ! -e $R_outputs ] ; then mkdir $R_outputs; fi
 # Rscript --vanilla Kmer_analysis.R /home/drt83172/Documents/Tall_fescue/Usefull_Kmers/Parents /home/drt83172/Documents/Tall_fescue/Usefull_Kmers/Progeny $R_outputs/R_parents.txt $R_outputs/R_progeny.txt
 # 
 # python Score_Table_creation.py -p $R_outputs/R_parents.txt -c $R_outputs/R_progeny.txt -s $R_outputs/Score_table.csv
+
 # # This next code is to change the key we were given by flex seq to get know parents and progeny maternal pairs 
-# # cat Parent_progeny.csv | cut -d "," -f 2 | cut -d "-" -f 1 > half_key_parents.txt
-# # cat Parent_progeny.csv | cut -d "," -f 5 | cut -d "_" -f 1-17 | sed s'/L002/L002_KMERS_Rready.txt/'g > key_progeny_half.txt
+cat Parent_progeny.csv | cut -d "," -f 2 | cut -d "-" -f 1 > half_key_parents.txt
+cat Parent_progeny.csv | cut -d "," -f 5 | cut -d "_" -f 1-17 | sed s'/L002/L002_KMERS_Rready.txt/'g > key_progeny_half.txt
+
+# #  This creates another key for progeny sample code to customer code 
+cat Parent_progeny.csv | cut -d "," -f 1,2 > Sample_to_customer_code.csv
+cat Parent_progeny.csv | cut -d "," -f 2,5 | sed s'/L002_R1_001.fastq.gz/KMERS_Rready.txt/'g > progeny_key.csv 
+
+
+# # This is how I found the depth that I will later incorporate into my data
+bcftools stats -S Progeny_Names_VCF.txt UGA_149001_FlexSeqResults.vcf.gz | grep "PSC" | cut -f 3,10
+
 # # Run this R script next with the score table output and the key edited with the code above
 # Score _analysis.R
-# # Output of this R_ script will be used in the following python script to make a list of progeny and their parents
+
+# # Final python program
 python Progeny_Parent_Finder.py -i -c -s

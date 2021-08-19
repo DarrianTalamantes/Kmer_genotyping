@@ -6,7 +6,6 @@ import subprocess
 def main():
     # # use line below to test without redoing long step
     # best_parents = pd.read_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv', index_col=0)
-    # print(best_parents.iloc[2969])
     parse_args()
 
     # # Run R the first time to get All_centers.txt and Predicted_Parents.txt
@@ -17,14 +16,27 @@ def main():
     # centers = import_data("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/All_centers.txt")
     # predicted = import_data("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/Predicted_Parents.txt")
     dead = import_data_csv("/home/drt83172/Documents/Tall_fescue/Plant_Info/Dead_Progeny.csv")
+    depth = pd.read_csv("/home/drt83172/Documents/Tall_fescue/Progeny_vcf/Progeny_depths.txt", sep="\t", header=1)
+    progeny_key = pd.read_csv("/home/drt83172/Documents/Tall_fescue/Sample_to_customer_code.csv", sep=",", header=0)
+    progeny_key = progeny_key.rename(columns={"RG_Sample_Code": "Sample"})
+    depth = depth.rename(columns={"[3]sample": "Sample"})
+    depth = depth.rename(columns={"[10]average depth": "Depth"})
 
-    # # Here we run the k-means grouping "resamples" amount of times and only keep ones that appear 90% or more of those times
-    # resamples = 100
-    # best_parents = resampling_kmeans(centers, predicted, resamples)
-    # best_parents.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv')
-    # usable_parents_genetics = find_usable_parents(best_parents, dead)
-    # usable_parents_genetics.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_genetics.csv')
-    # print(len(usable_parents_genetics), "genetics only")
+
+
+    # # Here we run the k-means grouping "resamples" x times and return an array with results of the resample and
+    # # Normalize with depth
+    resamples = 100
+    # resample = resampling_kmeans(centers, predicted, resamples)
+    resample = np.loadtxt("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/consistancy.txt", dtype=float)
+    normalized_resample = depth_normalizer(depth, resample, progeny_key)
+
+
+    # # With this we set the cutoff for the resamples and make an array of predicted parents
+    beat_this = .75 * resamples
+    found_parents = resample_cutoof(resample, beat_this)
+    print(found_parents)
+    usable_parents_genetics = find_usable_parents(found_parents, dead)
 
     # # # Confirms genetic data with maternal list and throws out those that dont work with both
     # best_parents = pd.read_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv', index_col=0)
@@ -50,15 +62,22 @@ def main():
     #     "/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_double.csv", index_col=0)
     # reciprocal(double_usable)
 
-    # # I use this to test how moving the cutoff value in the resampling method effects the result
-    best_parents = pd.read_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv',
-                               index_col=0)
-    resample = np.loadtxt("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/consistancy.txt", dtype=float)
-    beat_this = .85
-    found_parents = quick_cutoff(resample, beat_this, best_parents)
-    usable_parents_genetics = find_usable_parents(found_parents, dead)
+# # Uses depth to normalize the resample.
+def depth_normalizer(depth, resample, progeny_key):
+    depth_mean = depth.iloc[:, 1].mean()
+    depth_std = depth.iloc[:, 1].std()
+    depth["Z-Score"] = ""
+    depth["Normalized Score"] = ""
+    depth = pd.merge(depth, progeny_key, on='Sample')
 
-def quick_cutoff(resample, beat_this, best_parents):
+    for x in range(len(depth)):
+        depth.iloc[x, 2] = (depth.iloc[x, 1] - depth_mean) / depth_std  # This is the z-score
+        depth.iloc[x, 3] = (depth.iloc[x, 2])  # This is the normalizer value
+    print(depth)
+    depth.to_csv("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/sample_depth.txt", sep=",")
+
+# # Uses the resampling method result and cuts off stuff that dont appear in enough resamples
+def resample_cutoof(resample, beat_this):
     resample_final = np.zeros((len(resample), len(resample[0])), dtype=int)
     # # This is where we make cut offs from the resample table and create the final resample table that we use after this.
     for row in range(len(resample)):
@@ -71,8 +90,9 @@ def quick_cutoff(resample, beat_this, best_parents):
                     if position2 == 0:
                         resample_final[row][position] = predicted_parent
                         break
-    resample_final = pd.DataFrame(resample_final, index=best_parents.index,
-                                  columns=best_parents.columns)
+    single_sample = pd.read_csv("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/single_sample.txt", sep="\t", index_col=0)
+    resample_final = pd.DataFrame(resample_final, index=single_sample.index,
+                                  columns=single_sample.columns)
     return resample_final
 
 
@@ -143,7 +163,6 @@ def column_finder(input, switcher):
 def resampling_kmeans(centers, predicted, resmaples):
     found_parents_genetics = parent_finder(centers, predicted)
     resample = np.zeros((len(found_parents_genetics), len(found_parents_genetics.columns)), dtype=int)
-    beat_this = resmaples*.8
     for seed in range(resmaples):
         subprocess.call(['Rscript',
                          '/home/drt83172/Documents/Tall_fescue/Kmer_analyses/Scripts/Kmer_genotyping/Scripts/Score _analysis_auto.R',
@@ -163,21 +182,8 @@ def resampling_kmeans(centers, predicted, resmaples):
                 parent_column = column_finder(predicted_parent, True)
                 parent_column = int(parent_column)
                 resample[row][parent_column] += 1
-    resample_final = np.zeros((len(found_parents_genetics), len(found_parents_genetics.columns)), dtype=int)
-    # # This is where we make cut offs from the resample table and create the final resample table that we use after this.
-    for row in range(len(resample)):
-        for col in range(len(resample[0])):
-            consistency = resample[row][col]
-            if consistency >= beat_this:
-                predicted_parent = column_finder(col, 2)
-                for position in range(len(resample_final[0])):
-                    position2 = resample_final[row][position]
-                    if position2 == 0:
-                        resample_final[row][position] = predicted_parent
-                        break
-    resample_final = pd.DataFrame(resample_final, index=found_parents_genetics.index, columns=found_parents_genetics.columns)
-    np.savetxt("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/consistancy.txt", resample, delimiter="\t")
-    return resample_final
+    found_parents_genetics.to_csv("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/single_sample.txt", sep="\t")
+    return resample
 
 
 # # This method takes the maternal list and will add it in without confirming it with the genetics
@@ -298,6 +304,10 @@ def import_data(file):
 
 def import_data_csv(file):
     data = np.loadtxt(file, delimiter=",", dtype=str)
+    return data
+
+def import_data_tsv(file):
+    data = np.loadtxt(file, delimiter="\t", dtype=str)
     return data
 
 

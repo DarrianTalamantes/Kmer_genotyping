@@ -70,8 +70,8 @@ do
 
 # bwa mem -t $PROCS $refGenome $Raw_Progeny/${sample}_R1_001.fastq.gz $Raw_Progeny/${sample}_R2_001.fastq.gz > $Aligned_progeny/$sample.aligned.sam
 
-samtools view -S -b $Aligned_progeny/$sample.aligned.sam > $Sorted_progeny_bam/$sample.bam
-samtools sort $Sorted_progeny_bam/$sample.bam -o $Sorted_progeny_bam/$sample.sorted.bam
+samtools view -S -b $Aligned_progeny/$sample.aligned.sam > $Aligned_progeny_bam/$sample.bam
+samtools sort $Aligned_progeny_bam/$sample.bam -o $Sorted_progeny_bam/$sample.sorted.bam
 
 done
 
