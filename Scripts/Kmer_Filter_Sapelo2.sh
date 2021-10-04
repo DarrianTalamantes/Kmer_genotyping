@@ -135,7 +135,7 @@ cat Parent_progeny.csv | cut -d "," -f 2,5 | sed s'/L002_R1_001.fastq.gz/KMERS_R
 
 
 # # This is how I found the depth that I will later incorporate into my data
-bcftools stats -S Progeny_Names_VCF.txt UGA_149001_FlexSeqResults.vcf.gz | grep "PSC" | cut -f 3,10
+bcftools stats -S Progeny_Names_VCF.txt UGA_149001_FlexSeqResults.vcf.gz | grep "PSC" | cut -f 3,10 > Progeny_depths.txt
 
 # # Run this R script next with the score table output and the key edited with the code above
 # Score _analysis.R

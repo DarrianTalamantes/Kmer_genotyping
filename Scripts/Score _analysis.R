@@ -121,6 +121,15 @@ Scores_feild_names <- tibble::column_to_rownames(Scores_feild_names, "Progeny_fe
 Scores_depth <- merge(x=Scores_feild_names, y=depth_codes, by="row.names")
 Scores_depth <- tibble::column_to_rownames(Scores_depth, "Row.names")
 
+x = 301
+for (i in 1:17){
+  colnames(Scores_depth)[i] <- x
+  if (x == 308 | x == 310 | x == 316){
+    x = x+2}
+  else
+    x = x + 1
+}
+
 # # Using depth to normalize the scores
 Scores_depth_norm <- Scores_depth[1:17]/Scores_depth$Depth
 Known <- Scores_depth[18:19]
