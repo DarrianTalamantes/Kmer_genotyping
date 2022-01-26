@@ -52,13 +52,13 @@ def main():
     usable_double_confirmed.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_double.csv')
     print(len(usable_double_confirmed), "double ############################")
 
-    # # # adds maternal list to genetic data
-    # best_parents = pd.read_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv', index_col=0)
-    # maternal_list_added = maternal_list_adder(best_parents)
-    # maternal_list_added.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_mat_added.csv')
-    # usable_maternal_list_added = find_usable_parents(maternal_list_added, dead)
-    # usable_maternal_list_added.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_mat_added.csv')
-    # print(len(usable_maternal_list_added), "maternal list added ###########################")
+    # # adds maternal list to genetic data
+    best_parents = pd.read_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv', index_col=0)
+    maternal_list_added = maternal_list_adder(best_parents)
+    maternal_list_added.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_mat_added.csv')
+    usable_maternal_list_added = find_usable_parents(maternal_list_added, dead)
+    usable_maternal_list_added.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_mat_added.csv')
+    print(len(usable_maternal_list_added), "maternal list added ###########################")
 
     # # Uses the usable data frames created from find_usable_parents(double confirmed method to make a list of reciprical parents
     # # Semi unfinished
@@ -274,8 +274,9 @@ def find_usable_parents(predicted_parents, dead):
                     too_many_parents.add(predicted_parents.index[row])
     usless_parents = not_enough_parents.symmetric_difference(too_many_parents)  # the amount usless here is correct
     usless_parents = list(usless_parents)
-    with open('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/Usless_Parents.txt', 'w') as f:
-        f.write(json.dumps(usless_parents))
+    # # only use this line if you wanna know a list of usless parents
+    # with open('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/Usless_Parents.txt', 'w') as f:
+    #     f.write(json.dumps(usless_parents))
     print(len(too_many_parents), " have too many parents")
     print(len(not_enough_parents), " have too few parents")
     for i in range(len(usless_parents)):

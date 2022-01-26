@@ -67,8 +67,10 @@ if [ ! -e $Progeny_R_ready ] ; then mkdir $Progeny_R_ready; fi
 if [ ! -e $R_outputs ] ; then mkdir $R_outputs; fi
 
 
-# # Below is for practice 
+# # The next line is for practice 
 # Home=/scratch/drt83172/Wallace_lab/TallFescue/Data/Practice
+
+# Home=/scratch/drt83172/Wallace_lab/TallFescue/Data
 # Progeny_KMERS=$Home/Progeny_KMERS
 # InterFiles=$Home/InterFiles
 # Parent_KMERS=$Home/Parent_KMERS
@@ -93,19 +95,25 @@ if [ ! -e $R_outputs ] ; then mkdir $R_outputs; fi
 
 # # Run program
 # 
-# # Filters for progeny kmers that appear at least x times
+# # Step 1
+# # Filters for progeny kmers that appear at least in x progeny
 # python upper_lower_filter.py -k $Progeny_KMERS -l 6 -s $InterFiles/kmer_progeny_filter1.txt
-# # Need to filter one parent file at a time using script 2
+
+# # Step 2
+# # Filter parent files to only contain kmers that match with ones we have 
 # >$InterFiles/DeleteMe.txt
 # for i in $(ls $Parent_KMERS | cut -d . -f 1)
 # do
 # echo "python filter_one_dic_using_another.py -p $Parent_KMERS/${i}.txt -c $InterFiles/kmer_progeny_filter1.txt -s $Parent_stage_2/${i}_Stage2.txt" >> $InterFiles/DeleteMe.txt
 # done
 # cat $InterFiles/DeleteMe.txt | parallel --jobs 3 --progress
-# # use script one on second stage parent files
+
+# # Step 3
+# # use upper_lower_filter.py on second stage parent files to filter them to have kmers that appear in no more than x parents.
 # python upper_lower_filter.py -k $Parent_stage_2 -u 1 -s $Final_Kmers/usefull_kmers.txt
-#  
-# # Use the usefull_kmers list to extract usefull kmers from all other files
+
+# # Step 4
+# # Use the usefull_kmers list to extract usefull kmers from all other files. (Double filtered parental kmers used to filter the progeny kmer files)
 # >$InterFiles/EraseMe.txt
 # for file in $(ls $Parent_stage_2 | cut -d . -f 1)
 # do
@@ -119,10 +127,16 @@ if [ ! -e $R_outputs ] ; then mkdir $R_outputs; fi
 # echo "python Getting_kmers_ready_for_R.py -i $Progeny_KMERS/${file}.txt -l $Final_Kmers/usefull_kmers.txt -s $Progeny_R_ready/${file}_Rready.txt" >> $InterFiles/WipeMe.txt
 # done
 # cat $InterFiles/WipeMe.txt | parallel --jobs 4 --progress
+
+# # Step 5 
+# The R scipt creates 2 data tables. Y axis is the name of parent of progeny. X axis is the Kmer. Data in center is the amount of each kmer.
 # # commands are a directory for R ready parents and then R ready progeny, then output for parents and output for progeny.
 # # R script only works in R studio and possibly on local computer. Does not work in sapelo. SImply add the outputs into sapelo if wanting to run on sapelo2.
+
 # Rscript --vanilla Kmer_analysis.R /home/drt83172/Documents/Tall_fescue/Usefull_Kmers/Parents /home/drt83172/Documents/Tall_fescue/Usefull_Kmers/Progeny $R_outputs/R_parents.txt $R_outputs/R_progeny.txt
-# 
+#
+# # Step 6
+# #Creates a score table. Parents on x axis, progeny on y axis. Center data is the amount of uniq kmers each shares.
 # python Score_Table_creation.py -p $R_outputs/R_parents.txt -c $R_outputs/R_progeny.txt -s $R_outputs/Score_table.csv
 
 # # This next code is to change the key we were given by flex seq to get know parents and progeny maternal pairs 
@@ -134,11 +148,18 @@ cat Parent_progeny.csv | cut -d "," -f 1,2 > Sample_to_customer_code.csv
 cat Parent_progeny.csv | cut -d "," -f 2,5 | sed s'/L002_R1_001.fastq.gz/KMERS_Rready.txt/'g > progeny_key.csv 
 
 
-# # This is how I found the depth that I will later incorporate into my data
+# # This is how I found the depth that I will later incorporate into my data (Never actually use as of 1/25/2022)
 bcftools stats -S Progeny_Names_VCF.txt UGA_149001_FlexSeqResults.vcf.gz | grep "PSC" | cut -f 3,10 > Progeny_depths.txt
 
 # # Run this R script next with the score table output and the key edited with the code above
 # Score _analysis.R
 
+# # Step 7
+# # This step will find the Z-scores of 1 progeny to all parents for all progeny. Uses K means on those z-scores where k = 4
+# # Does that x times (100 in our case) and only keeps progeny parent pairs that meet these three conditions
+# # 1. Progeny apears in the top kluster for a parent 65%
+# # 2. Progeny must have no less or more than 2 parents that meet criteria 1
+# # 3. One parent for the given progeny must be on our known parents list.
+# # 4. Progeny can not be on the dead list. 
 # # Final python program
 python Progeny_Parent_Finder.py -i -c -s
