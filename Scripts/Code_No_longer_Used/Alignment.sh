@@ -55,7 +55,7 @@ if [ ! -e $Aligned_progeny ] ; then mkdir $Aligned_progeny; fi
 
 
 
-
+# This code is to align our reads to a refrence genome. Not necessary for Kmers.
 
 # #Setting other variables
 PROCS=5

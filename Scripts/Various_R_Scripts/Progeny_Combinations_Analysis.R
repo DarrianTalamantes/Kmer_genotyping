@@ -1,0 +1,45 @@
+# # This script is to learn how many combinations of parents my progeny represent.
+library(tidyverse)
+
+Parents <- read.table ("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_double.csv", sep = ",", header = TRUE, row.names = 1)
+
+# # Always make sure the smaller number is in the first column 
+combos <- nrow(Parents)
+for (i in 1:nrow(Parents)){
+  parent1 <- Parents[i,1]
+  parent2 <- Parents[i,2]
+  if (parent2>parent1){
+    Parents[i,1] <- parent2
+    Parents[i,2] <- parent1
+  }}
+
+# #Creating data frame with counting up the occurrences of each parent combo
+Parents$Combos <- paste(Parents$X0,"_",Parents$X1)
+n_distinct(Parents$Combos)
+Occurances <- as.data.frame(table(Parents$Combos))
+
+Occurances <- Occurances %>% rename(Parantal_Combination = Var1,
+       Frequency = Freq)
+Occurances <- Occurances[order(Occurances$Frequency),]
+
+# # Find average amount of occurances
+mean(Occurances$Frequency)
+median(Occurances$Frequency)
+
+# # Makes a plot of all the different combinations
+ggplot(data = Occurances, aes(x=reorder(Parantal_Combination, Frequency), y=Frequency)) +
+  geom_bar( stat = "identity", fill = "cornflowerblue") +
+  theme(axis.text.x=element_blank()) + 
+  labs(title = "Parental Combination Counts",
+       x = "Unique Combinations",
+       y = "Frequency")
+
+# # Getting progeny from the cross with the most progeny
+Parents2 <- subset(Parents, select=c("X0", "X1")) 
+Parent314_312 <- subset(Parents2, X0==314 & X1==312)
+parent304_301 <- subset(Parents2, x0==304 & X1==301)
+write.csv(Parent314_312,"/home/drt83172/Documents/Tall_fescue/Plant_Info/Parent314_312.csv")
+write.csv(parent304_301,"/home/drt83172/Documents/Tall_fescue/Plant_Info/Parent304_301.csv")
+
+
+

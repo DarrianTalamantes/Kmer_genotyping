@@ -71,9 +71,9 @@ if [ ! -e $R_outputs ] ; then mkdir $R_outputs; fi
 # Home=/scratch/drt83172/Wallace_lab/TallFescue/Data/Practice
 
 # Home=/scratch/drt83172/Wallace_lab/TallFescue/Data
-# Progeny_KMERS=$Home/Progeny_KMERS
+# Progeny_KMERS=$Home/KMC_Progeny_Data
 # InterFiles=$Home/InterFiles
-# Parent_KMERS=$Home/Parent_KMERS
+# Parent_KMERS=$Home/KMC_Parent_Data
 # Final_Kmers=$Home/Final_Kmers
 # Parent_stage_2=$Home/Parent_stage_2
 # Parents_R_ready=$Home/Parents_R_ready
@@ -92,7 +92,7 @@ if [ ! -e $R_outputs ] ; then mkdir $R_outputs; fi
 # if [ ! -e $R_outputs ] ; then mkdir $R_outputs; fi
 # if [ ! -e $Score_table ] ; then mkdir $Score_table; fi
 
-
+# # To make Kmers run the Merge_Kmer_making_x.sh script first.
 # # Run program
 # 
 # # Step 1

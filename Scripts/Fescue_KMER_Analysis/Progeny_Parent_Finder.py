@@ -6,8 +6,9 @@ import json
 
 def main():
     # # use line below to test without redoing long step
+    # # (I think best_parents variable is phased out 04/12/22)
     best_parents = pd.read_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv', index_col=0)
-    parse_args()
+    args = parse_args()
 
     # # Run R the first time to get All_centers.txt and Predicted_Parents.txt
     # # Args are random seed, files 1-4
@@ -28,8 +29,9 @@ def main():
 
     # # Here we run the k-means grouping "resamples" x times and return an array with results of the resample and
     resamples = 100
-    # resample = resampling_kmeans(centers, predicted, resamples)
-    resample = np.loadtxt("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/consistancy.txt", dtype=float)
+    resample = resampling_kmeans(centers, predicted, resamples)
+    # # activate the line below to make this go fast. Deactivate line above if wantign to do so.
+    # resample = np.loadtxt("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/consistancy.txt", dtype=float)
 
 
     # # With this we set the cutoff for the resamples and make an array of predicted parents
