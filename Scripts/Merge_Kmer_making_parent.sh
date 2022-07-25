@@ -1,7 +1,7 @@
 #!/bin/bash
 #HEADER FOR SUBMITTED SCRIPTS
 #SBATCH --job-name=KMER_Merger_Parent
-#SBATCH --partition=batch 
+#SBATCH --partition=wallace_p
 #SBATCH --ntasks=1
 #SBATCH  --nodes=1 
 #SBATCH  --cpus-per-task=10
@@ -49,12 +49,12 @@ if [ ! -e $RawParentData_Merged ] ; then mkdir $RawParentData_Merged; fi
 if [ ! -e $KMC_Parent_Data ] ; then mkdir $KMC_Parent_Data; fi
 
 # Merging the raw data together  
->$InterFiles/DeleteMe.txt
+>$InterFiles/DeleteMeParent.txt
 for line in $(ls $RawParentData | sort | uniq | cut -d "-" -f 1)
 do
-echo "zcat ${RawParentData}/${line}-2944_R1_.fq.gz ${RawParentData}/${line}-2944_R2_.fq.gz | gzip > ${RawParentData_Merged}/${line}.fq.gz" >> $InterFiles/DeleteMe.txt
+echo "zcat ${RawParentData}/${line}-2944_R1_.fq.gz ${RawParentData}/${line}-2944_R2_.fq.gz | gzip > ${RawParentData_Merged}/${line}.fq.gz" >> $InterFiles/DeleteMeParent.txt
 done
-cat $InterFiles/DeleteMe.txt | parallel --jobs 2 --progress
+cat $InterFiles/DeleteMeParent.txt | parallel --jobs 2 --progress
 
 for line in $(ls $RawParentData | sort | uniq | cut -d "-" -f 1)
 do

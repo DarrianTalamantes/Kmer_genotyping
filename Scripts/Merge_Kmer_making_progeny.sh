@@ -1,7 +1,7 @@
 #!/bin/bash
 #HEADER FOR SUBMITTED SCRIPTS
 #SBATCH --job-name=KMER_Pro
-#SBATCH --partition=batch 
+#SBATCH --partition=wallace_p
 #SBATCH --ntasks=1
 #SBATCH  --nodes=1 
 #SBATCH  --cpus-per-task=10
@@ -49,12 +49,12 @@ if [ ! -e $RawProgenyData_Merged ] ; then mkdir $RawProgenyData_Merged; fi
 if [ ! -e $KMC_Progeny_Data ] ; then mkdir $KMC_Progeny_Data; fi
 
 # Merging the raw data together  
->$InterFiles/DeleteMe.txt
+>$InterFiles/DeleteMeProgeny.txt
 for line in $(ls $RawProgenyData | cut -d "_" -f 1-17 | sort | uniq)
 do
-echo "zcat ${RawProgenyData}/${line}_R1_001.fastq.gz ${RawProgenyData}/${line}_R2_001.fastq.gz | gzip > ${RawProgenyData_Merged}/${line}.fq.gz" >> $InterFiles/DeleteMe.txt
+echo "zcat ${RawProgenyData}/${line}_R1_001.fastq.gz ${RawProgenyData}/${line}_R2_001.fastq.gz | gzip > ${RawProgenyData_Merged}/${line}.fq.gz" >> $InterFiles/DeleteMeProgeny.txt
 done
-cat $InterFiles/DeleteMe.txt | parallel --jobs 10 --progress
+cat $InterFiles/DeleteMeProgeny.txt | parallel --jobs 10 --progress
 
 for line in $(ls $RawProgenyData | cut -d "_" -f 1-17 | sort | uniq)
 do
