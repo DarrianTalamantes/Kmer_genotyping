@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 from os import walk
@@ -40,7 +40,7 @@ def parse_args():
     return parser.parse_args()
 
 
-# method imports files
+# method imports files, I no longer use this method because it stores the file in memory and I was having memory issues
 def importfile(file):
     array = np.loadtxt(file, dtype=str)
     # Process this text file line by line.
@@ -48,19 +48,24 @@ def importfile(file):
 
 
 # method counts how many files a kmer appers in in a directory.
+# Inputs: List of file names, path to kmer directory, an int, Boolean, Savefile pathway
 def prescencecount(filenames,  filepath, cutoff, method, savefile):
     # The for loop below counts how many files a certain kmer appears in
+    # It looks at the file line by line to save memory
     freq = {}
     for file in filenames:
-        print(file)
-        kmer_counts = importfile(filepath + "/" + file)
-        # load the file one line at a time here.
-        # kmer_list = kmer_counts[:, 0] old code, delete if new works
-        for kmer in kmer_counts[:, 0]:
-            if kmer in freq:
-                freq[kmer] += 1
-            else:
-                freq[kmer] = 1
+        # print(file)
+        with open(filepath + "/" + file) as kmer_counts:
+            for line in kmer_counts:
+                line2 = line.split('\t')
+                # print(line2)
+                kmer = line2[0]
+                if kmer in freq:
+                    freq[kmer] += 1
+                else:
+                    freq[kmer] = 1
+        print(freq)
+
     # This is creating a second dictionary that will cut off any kmer found less than x times
     # This part can be written to a file
     outfile = open(savefile, "w")
@@ -83,4 +88,6 @@ def prescencecount(filenames,  filepath, cutoff, method, savefile):
 
 
 main()
+
+
 

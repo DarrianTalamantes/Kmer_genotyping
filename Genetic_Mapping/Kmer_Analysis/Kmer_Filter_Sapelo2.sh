@@ -1,12 +1,12 @@
 #!/bin/bash
 #HEADER FOR SUBMITTED SCRIPTS
 #SBATCH --job-name=Progeny_Filtering
-#SBATCH --partition=wallace_p 
+#SBATCH --partition=highmem_p 
 #SBATCH  --nodes=1 
 #SBATCH --ntasks-per-node=5
-#SBATCH --time=24:00:00
+#SBATCH --time=60:00:00
 #SBATCH --export=NONE
-#SBATCH --mem=110gb
+#SBATCH --mem=999gb
 #SBATCH --mail-user=drt83172@uga.edu
 #SBATCH --mail-type=END,FAIL
 #SBATCH --output=/scratch/drt83172/Wallace_lab/TallFescue/Scripts/OutFiles/%x_%j.out 
@@ -60,6 +60,7 @@ Score_table=$Home/Score_table
 Working_Kmers_Parents=$Home/Working_Kmers_Parents 
 Working_Kmers_Progeny=$Home/Working_Kmers_Progeny
 Kmer_Lists=$Home/Kmer_Lists
+Hapmat_FIles=$Home/Hapmat_Files
 
 
 
@@ -75,6 +76,7 @@ if [ ! -e $Score_table ] ; then mkdir $Score_table; fi
 if [ ! -e $Working_Kmers_Parents ] ; then mkdir $Working_Kmers_Parents; fi
 if [ ! -e $Working_Kmers_Progeny ] ; then mkdir $Working_Kmers_Progeny; fi
 if [ ! -e $Kmer_Lists ] ; then mkdir $Kmer_Lists; fi
+if [ ! -e $Hapmat_FIles ] ; then mkdir $Hapmat_FIles; fi
 
 
 # # # To make Kmers run the Merge_Kmer_making_x.sh script first.
@@ -125,8 +127,8 @@ cross=314x312
 
 # # Step 4
 #  #  Ensure only kmers found in both progeny filter lists are in final progeny file
-python filter_one_dic_using_another.py -p $InterFiles/kmer_progeny_filterupper.txt -c $InterFiles/kmer_progeny_filterlower.txt -s $InterFiles/kmer_progeny_filteredfinal.txt
-echo "python filter_one_dic_using_another.py -p $InterFiles/kmer_progeny_filterupper.txt -c $InterFiles/kmer_progeny_filterlower.txt -s $InterFiles/kmer_progeny_filteredfinal.txt"
+# python filter_one_dic_using_another.py -p $InterFiles/kmer_progeny_filterupper.txt -c $InterFiles/kmer_progeny_filterlower.txt -s $InterFiles/kmer_progeny_filteredfinal.txt
+# echo "python filter_one_dic_using_another.py -p $InterFiles/kmer_progeny_filterupper.txt -c $InterFiles/kmer_progeny_filterlower.txt -s $InterFiles/kmer_progeny_filteredfinal.txt"
 
 # # Step 5
 # # Filters parent Kmers to ensure they are only present in one parent
@@ -138,3 +140,12 @@ echo "python upper_lower_filter.py -k $Working_Kmers_Parents -u 1 -s $InterFiles
 python filter_one_dic_using_another.py -p $InterFiles/parent_kmers_filtered.txt -c $InterFiles/kmer_progeny_filteredfinal.txt -s $Final_Kmers/${cross}.txt
 echo "python filter_one_dic_using_another.py -p $InterFiles/parent_kmers_filtered.txt -c $InterFiles/kmer_progeny_filteredfinal.txt -s $Final_Kmers/${cross}.txt"
 
+# # Step 7
+# # Use the newly created master kmer file to create a hapmat file using all kmer files
+# python Making_Hapmat_FIle.py -pd $Working_Kmers_Parents -pc $Working_Kmers_Progeny -c $cross -m $Final_Kmers/${cross}.txt -s $Final_Kmers
+
+# # Step 8
+# #This step must be done out of sapelo2. Convert the hapmap file into a VCF file using Tassel
+
+# # Step 9 
+# # 

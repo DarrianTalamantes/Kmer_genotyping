@@ -13,14 +13,13 @@ import pandas as pd
 
 # Inputs, master kmer file, directory with parental kmers, directory with progeny kmers, corss im working on,
 def main():
-    # variable setting
-    parentD = "/home/drt/Desktop/UGA/Wallace_Lab/Tall_Fescue_Grass/Kmer_genotyping/Genetic_Mapping/Data/example_Kmers" \
-              "/parents/"
-    progenyD = "/home/drt/Desktop/UGA/Wallace_Lab/Tall_Fescue_Grass/Kmer_genotyping/Genetic_Mapping/Data" \
-               "/example_Kmers/Progeny/"
-    cross = "314x312"
-    masterKmersL = "/home/drt/Desktop/UGA/Wallace_Lab/Tall_Fescue_Grass/Kmer_genotyping/Genetic_Mapping/Data" \
-                   "/example_Kmers/masterExample.txt"
+    # variable inputs
+    args = parse_args()
+    parentD = args.parent_directory
+    progenyD = args.progeny.directory
+    cross = args.cross
+    masterKmersL = args.master_kmer_file
+    save = args.save_file
 
     # this creates a list of files within the specified directory
     _, _, progenyfiles = next(os.walk(progenyD))
@@ -52,11 +51,9 @@ def main():
                           columns=['rs#', 'alleles', 'chrom', 'pos', 'strand', 'assembly#',
                                    'center', 'protLSID', 'assayLSIP', 'panelLSID', 'QCcode'],
                           dtype=str, copy=None)
-    print(hapmat.shape)
     hapmat = append2hapmat(masterKmers, parentfiles, parentD, hapmat)
     hapmat = append2hapmat(masterKmers, progenyfiles, progenyD, hapmat)
-    print(hapmat)
-
+    hapmat.to_csv(save, sep="\t")
 
 def append2hapmat(masterKmers, listOfiles, directoryOfiles, file2append):
     # This method iterates through the fed list of files and checks if the kmer from that file is in the master list
@@ -85,6 +82,25 @@ def importfile(file):
         key, value = line.split()
         d[key] = value
     return d
+
+def parse_args():
+    # Inputs, master kmer file, directory with parental kmers, directory with progeny kmers, corss im working on,
+    # and save file path and name
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-m", "--master-kmer-file", help="File with all kmers being analyzed")
+    parser.add_argument("-pd", "--parent-directory", help="directory with progeny kmers")
+    parser.add_argument("-cd", "--progeny-directory", help="directory with progeny kmers")
+    parser.add_argument("-s", "--save-file", help="path and file name to save hapmat file")
+    parser.add_argument("-c", "--cross", help="current  biparental cross")
+    parser.add_argument("--debug", default=False, action="store_true")
+    args = parser.parse_args()
+
+    # Handle debug flag
+    global debug
+    debug = args.debug
+    return parser.parse_args()
+
+
 
 
 main()
