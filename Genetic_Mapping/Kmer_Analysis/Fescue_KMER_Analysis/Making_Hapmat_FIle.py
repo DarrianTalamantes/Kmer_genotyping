@@ -16,7 +16,7 @@ def main():
     # variable inputs
     args = parse_args()
     parentD = args.parent_directory
-    progenyD = args.progeny.directory
+    progenyD = args.progeny_directory
     cross = args.cross
     masterKmersL = args.master_kmer_file
     save = args.save_file
@@ -47,33 +47,64 @@ def main():
         hapmatArray[x, 10] = "NA"
 
     # Fill in the first 11 columns of hapmat file using pandas data frame
+    # Fill in the first 11 columns of hapmat file using pandas data frame
     hapmat = pd.DataFrame(data=hapmatArray, index=None,
                           columns=['rs#', 'alleles', 'chrom', 'pos', 'strand', 'assembly#',
                                    'center', 'protLSID', 'assayLSIP', 'panelLSID', 'QCcode'],
                           dtype=str, copy=None)
-    hapmat = append2hapmat(masterKmers, parentfiles, parentD, hapmat)
-    hapmat = append2hapmat(masterKmers, progenyfiles, progenyD, hapmat)
-    hapmat.to_csv(save, sep="\t")
+    for x in range(len(parentfiles)):
+        hapmat[parentfiles[x]] = ""
+    for x in range(len(progenyfiles)):
+        hapmat[progenyfiles[x]] = ""
+    colnames = list(hapmat.columns)
+    hapmat = hapmat.to_numpy(dtype='U113')
+    precenceAbsance = np.zeros((len(masterkeys), len(progenyfiles) + len(parentfiles)), dtype=str)
+    ACdata = append2hapmat(masterKmers, parentfiles, progenyfiles, parentD, progenyD, precenceAbsance)
+    hapCol = 11
+    FinalData = np.zeros(shape=(np.size(masterKmers) + 1, len(hapmat[0])), dtype='U113')
+    # Puts in column names
+    for x in range(len(colnames)):
+        FinalData[0][x] = colnames[x]
+    # Puts in metadata
+    for x in range(11):
+        for y in range(len(hapmat)):
+            FinalData[y+1][x] = hapmat[y][x]
+    # Puts in A's and C's
+    for x in range(len(ACdata[0])):
+        for y in range(len(ACdata)):
+            FinalData[y + 1][hapCol] = ACdata[y][x]
+        hapCol += 1
+    np.savetxt(save, FinalData, delimiter='\t', fmt='%s')
 
-def append2hapmat(masterKmers, listOfiles, directoryOfiles, file2append):
-    # This method iterates through the fed list of files and checks if the kmer from that file is in the master list
-    # It creates a tiny array full of A's or C's that will then be added to the hapmat file
-    for x in range(len(listOfiles)):
-        tinymat = np.zeros(shape=(np.size(masterKmers)), dtype="U36")
-        file = listOfiles[x]
-        # print("reading file" + file)
-        tempfile = importfile(directoryOfiles + "/" + file)
-        for y in range(len(masterKmers)):
-            if masterKmers[y] in tempfile:
-                tinymat[y] = 'A'
-                # print("Present")
+    # This method will use the master kmer file to create a numpy array showing prescence abscence of kmers
+
+
+def append2hapmat(masterKmers, listOfiles1, listOfiles2, directory1, directory2, precenceAbsance):
+    fileNum = 0
+    for file1 in listOfiles1:
+        tempfile = importfile(directory1 + "/" + file1)
+        for x in range(len(masterKmers)):
+            kmer1 = masterKmers[x]
+            if kmer1 in tempfile:
+                precenceAbsance[x][fileNum] = 'A'
             else:
-                tinymat[y] = 'C'
-                # print("Missing")
-            file2append[file] = tinymat
-    return file2append
+                precenceAbsance[x][fileNum] = 'C'
+        fileNum += 1
+    for file2 in listOfiles2:
+        tempfile = importfile(directory2 + "/" + file2)
+        for x in range(len(masterKmers)):
+            kmer1 = masterKmers[x]
+            if kmer1 in tempfile:
+                precenceAbsance[x][fileNum] = 'A'
+            else:
+                precenceAbsance[x][fileNum] = 'C'
+        fileNum += 1
+        f = open("counter.txt", "w")
+        f.write(str(fileNum))
+        f.close()
+    return precenceAbsance
 
-
+#Imports a file into a dictionary
 def importfile(file):
     # method imports files
     d = {}

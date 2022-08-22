@@ -1,12 +1,12 @@
 #!/bin/bash
 #HEADER FOR SUBMITTED SCRIPTS
 #SBATCH --job-name=Progeny_Filtering
-#SBATCH --partition=highmem_p 
+#SBATCH --partition=wallace_p 
 #SBATCH  --nodes=1 
 #SBATCH --ntasks-per-node=5
 #SBATCH --time=60:00:00
 #SBATCH --export=NONE
-#SBATCH --mem=999gb
+#SBATCH --mem=120gb
 #SBATCH --mail-user=drt83172@uga.edu
 #SBATCH --mail-type=END,FAIL
 #SBATCH --output=/scratch/drt83172/Wallace_lab/TallFescue/Scripts/OutFiles/%x_%j.out 
@@ -27,7 +27,7 @@
 
 #loading modules
 module load Miniconda2/4.7.10
-
+module load MSTmap/20210830-GCC-8.3.0
 # activating conda
 conda_env=KMER_Filter
 . $(conda info --root)/etc/profile.d/conda.sh 
@@ -42,13 +42,15 @@ source activate $conda_env
 # conda install -c r r-reshape=0.8.8 
 # conda install -c r r-tidyverse=1.2.1
 # conda install -c conda-forge r-vegan=2.5_7
-
+ 
+# conda install -c bioconda mstmap 
 
 # Making the correct directories 
 # The next line is for practice 
 # Home=/scratch/drt83172/Wallace_lab/TallFescue/Data/Practice
 
 Home=/scratch/drt83172/Wallace_lab/TallFescue/Data
+Scripts=/scratch/drt83172/Wallace_lab/TallFescue/Scripts
 Progeny_KMERS=$Home/KMC_Progeny_Data
 Parent_KMERS=$Home/KMC_Parent_Data
 InterFiles=$Home/InterFiles
@@ -61,8 +63,8 @@ Working_Kmers_Parents=$Home/Working_Kmers_Parents
 Working_Kmers_Progeny=$Home/Working_Kmers_Progeny
 Kmer_Lists=$Home/Kmer_Lists
 Hapmat_FIles=$Home/Hapmat_Files
-
-
+HetMap=$Scripts/Filter_Kmers/HetMap
+Maps=$Home/Maps
 
 if [ ! -e $Progeny_KMERS ] ; then mkdir $Progeny_KMERS; fi
 if [ ! -e $InterFiles ] ; then mkdir $InterFiles; fi
@@ -77,6 +79,8 @@ if [ ! -e $Working_Kmers_Parents ] ; then mkdir $Working_Kmers_Parents; fi
 if [ ! -e $Working_Kmers_Progeny ] ; then mkdir $Working_Kmers_Progeny; fi
 if [ ! -e $Kmer_Lists ] ; then mkdir $Kmer_Lists; fi
 if [ ! -e $Hapmat_FIles ] ; then mkdir $Hapmat_FIles; fi
+if [ ! -e $HetMap ] ; then mkdir $HetMap; fi
+if [ ! -e $Maps ] ; then mkdir $Maps; fi
 
 
 # # # To make Kmers run the Merge_Kmer_making_x.sh script first.
@@ -132,20 +136,63 @@ cross=314x312
 
 # # Step 5
 # # Filters parent Kmers to ensure they are only present in one parent
-python upper_lower_filter.py -k $Working_Kmers_Parents -u 1 -s $InterFiles/parent_kmers_filtered.txt
-echo "python upper_lower_filter.py -k $Working_Kmers_Parents -u 1 -s $InterFiles/parent_kmers_filtered.txt"
-
+# python upper_lower_filter.py -k $Working_Kmers_Parents -u 1 -s $InterFiles/parent_kmers_filtered.txt
+# echo "python upper_lower_filter.py -k $Working_Kmers_Parents -u 1 -s $InterFiles/parent_kmers_filtered.txt"
+# 
 # #Step 6
 # # Makes master Kmer list by ensuring only kmers that appear in both progeny and parent lists show up 
-python filter_one_dic_using_another.py -p $InterFiles/parent_kmers_filtered.txt -c $InterFiles/kmer_progeny_filteredfinal.txt -s $Final_Kmers/${cross}.txt
-echo "python filter_one_dic_using_another.py -p $InterFiles/parent_kmers_filtered.txt -c $InterFiles/kmer_progeny_filteredfinal.txt -s $Final_Kmers/${cross}.txt"
+# python filter_one_dic_using_another.py -p $InterFiles/parent_kmers_filtered.txt -c $InterFiles/kmer_progeny_filteredfinal.txt -s $Kmer_Lists/${cross}.txt
+# echo "python filter_one_dic_using_another.py -p $InterFiles/parent_kmers_filtered.txt -c $InterFiles/kmer_progeny_filteredfinal.txt -s $Kmer_Lists/${cross}.txt"
 
 # # Step 7
 # # Use the newly created master kmer file to create a hapmat file using all kmer files
-# python Making_Hapmat_FIle.py -pd $Working_Kmers_Parents -pc $Working_Kmers_Progeny -c $cross -m $Final_Kmers/${cross}.txt -s $Final_Kmers
+# python Making_Hapmat_FIle.py -pd $Working_Kmers_Parents -cd $Working_Kmers_Progeny -c $cross -m $Kmer_Lists/${cross}.txt -s $Hapmat_FIles/${cross}_hapmap.txt
+# echo "python Making_Hapmat_FIle.py -pd $Working_Kmers_Parents -cd $Working_Kmers_Progeny -c $cross -m $Kmer_Lists/${cross}.txt -s $Hapmat_FIles/${cross}_hapmap.txt"
+
+# # # Step 8
+# # Create a genotype file from hapmap file that can be used with MSTmap
+# # First we create the header necessary for mstMap and then we append the genotype file
+# number_of_loci=$(awk 'END { print NR - 1 }' $Hapmat_FIles/${cross}_hapmap.txt )
+# number_of_individual=$(head -n1 $Hapmat_FIles/${cross}_hapmap.txt | cut -f 12- | sed 's/[^\t]//g' | wc -c)
+# 
+# 
+# > $Hapmat_FIles/${cross}_genotype.txt
+# echo "population_type DH" >> $Hapmat_FIles/${cross}_genotype.txt
+# echo "population_name LG" >> $Hapmat_FIles/${cross}_genotype.txt
+# echo "distance_function kosambi" >> $Hapmat_FIles/${cross}_genotype.txt
+# echo "cut_off_p_value 2.0" >> $Hapmat_FIles/${cross}_genotype.txt
+# echo "no_map_dist 15.0" >> $Hapmat_FIles/${cross}_genotype.txt
+# echo "no_map_size 0" >> $Hapmat_FIles/${cross}_genotype.txt
+# echo "missing_threshold 1.00" >> $Hapmat_FIles/${cross}_genotype.txt
+# echo "estimation_before_clustering no" >> $Hapmat_FIles/${cross}_genotype.txt
+# echo "detect_bad_data yes" >> $Hapmat_FIles/${cross}_genotype.txt
+# echo "objective_function COUNT" >> $Hapmat_FIles/${cross}_genotype.txt
+# echo "number_of_loci $number_of_loci" >> $Hapmat_FIles/${cross}_genotype.txt
+# echo "number_of_individual $number_of_individual" >> $Hapmat_FIles/${cross}_genotype.txt
+# printf "\n" >> $Hapmat_FIles/${cross}_genotype.txt
+# 
+# cat  $Hapmat_FIles/${cross}_hapmap.txt | cut -f 1,12- | sed 's/_//g' | sed 's/\.//g' | sed 's/C/B/g' | sed 's/rs#/locus_name/g' > $InterFiles/intergenotype.txt
+# cat $InterFiles/intergenotype.txt >> $Hapmat_FIles/${cross}_genotype.txt
+
+# # Step 9
+# # Use MSTmap to make a genetic map 
+MSTMap.exe $Hapmat_FIles/${cross}_genotype.txt $Maps/$cross_map.txt
+
+
 
 # # Step 8
 # #This step must be done out of sapelo2. Convert the hapmap file into a VCF file using Tassel
 
 # # Step 9 
-# # 
+# #  Follow the HetMap Pipeline (The filtering steps here seem to do nothing for us due to the nature of our data so we may want to just run mstMap?
+
+
+
+
+
+
+
+
+
+
+
