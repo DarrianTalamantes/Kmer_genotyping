@@ -32,6 +32,7 @@ module load MSTmap/20210830-GCC-8.3.0
 conda_env=KMER_Filter
 . $(conda info --root)/etc/profile.d/conda.sh 
 source activate $conda_env
+module load MSTmap/20210830-GCC-8.3.0
 
 # conda install -c anaconda numpy=1.19.2
 # conda install -c conda-forge matplotlib=3.4.2
@@ -152,27 +153,27 @@ cross=314x312
 # # # Step 8
 # # Create a genotype file from hapmap file that can be used with MSTmap
 # # First we create the header necessary for mstMap and then we append the genotype file
-# number_of_loci=$(awk 'END { print NR - 1 }' $Hapmat_FIles/${cross}_hapmap.txt )
-# number_of_individual=$(head -n1 $Hapmat_FIles/${cross}_hapmap.txt | cut -f 12- | sed 's/[^\t]//g' | wc -c)
-# 
-# 
-# > $Hapmat_FIles/${cross}_genotype.txt
-# echo "population_type DH" >> $Hapmat_FIles/${cross}_genotype.txt
-# echo "population_name LG" >> $Hapmat_FIles/${cross}_genotype.txt
-# echo "distance_function kosambi" >> $Hapmat_FIles/${cross}_genotype.txt
-# echo "cut_off_p_value 2.0" >> $Hapmat_FIles/${cross}_genotype.txt
-# echo "no_map_dist 15.0" >> $Hapmat_FIles/${cross}_genotype.txt
-# echo "no_map_size 0" >> $Hapmat_FIles/${cross}_genotype.txt
-# echo "missing_threshold 1.00" >> $Hapmat_FIles/${cross}_genotype.txt
-# echo "estimation_before_clustering no" >> $Hapmat_FIles/${cross}_genotype.txt
-# echo "detect_bad_data yes" >> $Hapmat_FIles/${cross}_genotype.txt
-# echo "objective_function COUNT" >> $Hapmat_FIles/${cross}_genotype.txt
-# echo "number_of_loci $number_of_loci" >> $Hapmat_FIles/${cross}_genotype.txt
-# echo "number_of_individual $number_of_individual" >> $Hapmat_FIles/${cross}_genotype.txt
-# printf "\n" >> $Hapmat_FIles/${cross}_genotype.txt
-# 
-# cat  $Hapmat_FIles/${cross}_hapmap.txt | cut -f 1,12- | sed 's/_//g' | sed 's/\.//g' | sed 's/C/B/g' | sed 's/rs#/locus_name/g' > $InterFiles/intergenotype.txt
-# cat $InterFiles/intergenotype.txt >> $Hapmat_FIles/${cross}_genotype.txt
+number_of_loci=$(awk 'END { print NR - 1 }' $Hapmat_FIles/${cross}_hapmap.txt )
+number_of_individual=$(head -n1 $Hapmat_FIles/${cross}_hapmap.txt | cut -f 12- | sed 's/[^\t]//g' | wc -c)
+
+
+> $Hapmat_FIles/${cross}_genotype.txt
+echo "population_type DH" >> $Hapmat_FIles/${cross}_genotype.txt
+echo "population_name LG" >> $Hapmat_FIles/${cross}_genotype.txt
+echo "distance_function kosambi" >> $Hapmat_FIles/${cross}_genotype.txt
+echo "cut_off_p_value 2.0" >> $Hapmat_FIles/${cross}_genotype.txt
+echo "no_map_dist 15.0" >> $Hapmat_FIles/${cross}_genotype.txt
+echo "no_map_size 0" >> $Hapmat_FIles/${cross}_genotype.txt
+echo "missing_threshold 1.00" >> $Hapmat_FIles/${cross}_genotype.txt
+echo "estimation_before_clustering no" >> $Hapmat_FIles/${cross}_genotype.txt
+echo "detect_bad_data yes" >> $Hapmat_FIles/${cross}_genotype.txt
+echo "objective_function COUNT" >> $Hapmat_FIles/${cross}_genotype.txt
+echo "number_of_loci $number_of_loci" >> $Hapmat_FIles/${cross}_genotype.txt
+echo "number_of_individual $number_of_individual" >> $Hapmat_FIles/${cross}_genotype.txt
+printf "\n" >> $Hapmat_FIles/${cross}_genotype.txt
+
+cat  $Hapmat_FIles/${cross}_hapmap.txt | cut -f 1,12- | sed 's/_/Zz/g' | sed 's/\.//g' |  sed 's/\tC\t/\tB\t/g' | sed 's/\/C/\/B/g' | sed 's/\tC/\tB/g'|  sed 's/rs#/locus_name/g' > $InterFiles/intergenotype.txt
+cat $InterFiles/intergenotype.txt >> $Hapmat_FIles/${cross}_genotype.txt
 
 # # Step 9
 # # Use MSTmap to make a genetic map 
