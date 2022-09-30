@@ -3,10 +3,10 @@
 #SBATCH --job-name=Progeny_Filtering
 #SBATCH --partition=highmem_p 
 #SBATCH  --nodes=1 
-#SBATCH --ntasks-per-node=20
+#SBATCH --ntasks-per-node=10
 #SBATCH --time=150:00:00
 #SBATCH --export=NONE
-#SBATCH --mem=900gb
+#SBATCH --mem=350gb
 #SBATCH --mail-user=drt83172@uga.edu
 #SBATCH --mail-type=END,FAIL
 #SBATCH --output=/scratch/drt83172/Wallace_lab/TallFescue/Scripts/OutFiles/%x_%j.out 
@@ -94,9 +94,11 @@ if [ ! -e $Keys ] ; then mkdir $Keys; fi
 # # Step 0
 # # This step will create all lists of all predidcted progeny for every combination of parents
 parental_combos=$Keys/All_combos.csv
-predicted_parents=$Keys/predicted_parents_double.csv
+predicted_parents=$Keys/predicted_parents_double_subset.csv  # This file is made from "Progeny_Parent_Finder.py"
 progeny_key=$Keys/progeny_key.csv
 
+rm $Keys/*_code.txt
+rm $Keys/*_Parents.txt
 while read -r line
 do 
     a=$(echo $line | cut -d "," -f 1 )
@@ -109,11 +111,13 @@ done <$parental_combos
 cat commands.txt | parallel --jobs 4 --progress
 
 
+rm $Keys/*_Progeny_Final.txt
 for line in $(ls $Keys| grep "code.txt")
 do
     arrIN=(${line//_/ }) # makes the variable into an array that I sepetate by "_"
     cross=${arrIN[0]}  # calls the first section of the array
-    Rscript --vanilla match_all_progeny_to_parents_p2.R $progeny_key $line ${cross}_Progeny_Final.txt
+    Rscript --vanilla match_all_progeny_to_parents_p2.R $progeny_key $Keys/$line ${Keys}/${cross}_Progeny_Final.txt
+    echo "Rscript --vanilla match_all_progeny_to_parents_p2.R $progeny_key $line ${Keys}/${cross}_Progeny_Final.txt"
 done
 
 echo "Step 0 complete"
@@ -142,7 +146,7 @@ do
     # # Parent_List=${cross}_Parents.txt
 
     >$InterFiles/DeleteMe01.txt
-    for file in $(cat $Keys/${Progeny_List})
+    for file in $(cat $Keys/${Progeny_List} | cut -d " " -f 2)
     do
         echo "cp $Progeny_KMERS/${file} $Working_Kmers_Progeny" >> $InterFiles/DeleteMe01.txt
     done
@@ -195,14 +199,21 @@ do
     echo "Step 4 complete"
     # # Step 5
     # # Filters parent Kmers to ensure they are only present in one parent
-    python upper_lower_filter.py -k $Working_Kmers_Parents -u 1 -s $InterFiles/parent_kmers_filtered.txt
-    echo "python upper_lower_filter.py -k $Working_Kmers_Parents -u 1 -s $InterFiles/parent_kmers_filtered.txt"
+    
+    FILE=$InterFiles/${cross}_parent_kmers_filtered.txt
+    if [ -f "$FILE" ]; then
+        echo "$FILE has already been made"
+    else 
+        echo "Creating $FILE ."
+        python upper_lower_filter.py -k $Working_Kmers_Parents -u 1 -s $InterFiles/${cross}_parent_kmers_filtered.txt
+        echo "python upper_lower_filter.py -k $Working_Kmers_Parents -u 1 -s $InterFiles/${cross}_parent_kmers_filtered.txt"
+    fi
 
     echo "Step 5 complete"
     # #Step 6
     # # Makes master Kmer list by ensuring only kmers that appear in both progeny and parent lists show up 
-    python filter_one_dic_using_another.py -p $InterFiles/parent_kmers_filtered.txt -c $InterFiles/kmer_progeny_filteredfinal.txt -s $Kmer_Lists/${cross}.txt
-    echo "python filter_one_dic_using_another.py -p $InterFiles/parent_kmers_filtered.txt -c $InterFiles/kmer_progeny_filteredfinal.txt -s $Kmer_Lists/${cross}.txt"
+    python filter_one_dic_using_another.py -p $InterFiles/${cross}_parent_kmers_filtered.txt -c $InterFiles/kmer_progeny_filteredfinal.txt -s $Kmer_Lists/${cross}.txt
+    echo "python filter_one_dic_using_another.py -p $InterFiles/${cross}_parent_kmers_filtered.txt -c $InterFiles/kmer_progeny_filteredfinal.txt -s $Kmer_Lists/${cross}.txt"
 
     echo "Step 6 complete"
     # # Step 7

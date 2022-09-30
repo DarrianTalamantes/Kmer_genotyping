@@ -64,7 +64,7 @@ def prescencecount(filenames,  filepath, cutoff, method, savefile):
                     freq[kmer] += 1
                 else:
                     freq[kmer] = 1
-        print(freq)
+        # print(freq)
 
     # This is creating a second dictionary that will cut off any kmer found less than x times
     # This part can be written to a file
