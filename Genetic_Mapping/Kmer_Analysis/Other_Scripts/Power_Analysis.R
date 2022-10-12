@@ -25,6 +25,8 @@ bmData2$CopyNum1 <- bmData$CopyNum+1
 bmData2 <- subset(bmData2,select = -c(CP_Ratio))
 bmData2_hist <- pivot_longer(bmData2, CopyNum1:CopyNum)
 
+## 
+
 
 ################################# graph ########################################
 

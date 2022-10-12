@@ -6,7 +6,7 @@
 #SBATCH --ntasks-per-node=10
 #SBATCH --time=150:00:00
 #SBATCH --export=NONE
-#SBATCH --mem=350gb
+#SBATCH --mem=950gb
 #SBATCH --mail-user=drt83172@uga.edu
 #SBATCH --mail-type=END,FAIL
 #SBATCH --output=/scratch/drt83172/Wallace_lab/TallFescue/Scripts/OutFiles/%x_%j.out 
@@ -63,7 +63,7 @@ Score_table=$Home/Score_table
 Working_Kmers_Parents=$Home/Working_Kmers_Parents 
 Working_Kmers_Progeny=$Home/Working_Kmers_Progeny
 Kmer_Lists=$Home/Kmer_Lists
-Hapmat_FIles=$Home/Hapmat_Files
+Hapmat_Files=$Home/Hapmat_Files
 HetMap=$Scripts/Filter_Kmers/HetMap
 Maps=$Home/Maps
 Keys=$Home/Keys
@@ -81,7 +81,7 @@ if [ ! -e $Score_table ] ; then mkdir $Score_table; fi
 if [ ! -e $Working_Kmers_Parents ] ; then mkdir $Working_Kmers_Parents; fi
 if [ ! -e $Working_Kmers_Progeny ] ; then mkdir $Working_Kmers_Progeny; fi
 if [ ! -e $Kmer_Lists ] ; then mkdir $Kmer_Lists; fi
-if [ ! -e $Hapmat_FIles ] ; then mkdir $Hapmat_FIles; fi
+if [ ! -e $Hapmat_Files ] ; then mkdir $Hapmat_Files; fi
 if [ ! -e $HetMap ] ; then mkdir $HetMap; fi
 if [ ! -e $Maps ] ; then mkdir $Maps; fi
 if [ ! -e $Keys ] ; then mkdir $Keys; fi
@@ -217,47 +217,47 @@ do
 
     echo "Step 6 complete"
     # # Step 7
-    # # Use the newly created master kmer file to create a hapmat file using      all kmer files
-    python Making_Hapmat_FIle.py -pd $Working_Kmers_Parents -cd $Working_Kmers_Progeny -c $cross -m $Kmer_Lists/${cross}.txt -s $Hapmat_FIles/${cross}_hapmap.txt
-    echo "python Making_Hapmat_FIle.py -pd $Working_Kmers_Parents -cd $Working_Kmers_Progeny -c $cross -m $Kmer_Lists/${cross}.txt -s $Hapmat_FIles/${cross}_hapmap.txt"
+    # # Use the newly created master kmer file to create a hapmat file using all kmer files
+    python Making_Hapmat_FIle.py -pd $Working_Kmers_Parents -cd $Working_Kmers_Progeny -c $cross -m $Kmer_Lists/${cross}.txt -s $Hapmat_Files/${cross}_hapmap.txt
+    echo "python Making_Hapmat_FIle.py -pd $Working_Kmers_Parents -cd $Working_Kmers_Progeny -c $cross -m $Kmer_Lists/${cross}.txt -s $Hapmat_Files/${cross}_hapmap.txt"
 
     echo "Step 7 complete"
     # # # Step 8 
     # # Removing Redundant Kmers
-    python Remove_Redundant_Kmers.py -s $Hapmat_FIles/${cross}_hapmapNonRedun.txt -hap $Hapmat_FIles/${cross}_hapmap.txt
-    echo "python Remove_Redundant_Kmers.py -s $Hapmat_FIles/${cross}_hapmapNonRedun.txt -hap $Hapmat_FIles/${cross}_hapmap.txt"
+    python Remove_Redundant_Kmers.py -s $Hapmat_Files/${cross}_hapmapNonRedun.txt -hap $Hapmat_Files/${cross}_hapmap.txt
+    echo "python Remove_Redundant_Kmers.py -s $Hapmat_Files/${cross}_hapmapNonRedun.txt -hap $Hapmat_Files/${cross}_hapmap.txt"
 
     echo "Step 8 complete"
     # # Step 9
     # # Create a genotype file from hapmap file that can be used with MSTmap
     # # First we create the header necessary for mstMap and then we append the genotype file
-    number_of_loci=$(awk 'END { print NR - 1 }' $Hapmat_FIles/${cross}_hapmapNonRedun.txt )
-    number_of_individual=$(head -n1 $Hapmat_FIles/${cross}_hapmapNonRedun.txt | cut -f 12- | sed 's/[^\t]//g' | wc -c)
+    number_of_loci=$(awk 'END { print NR - 1 }' $Hapmat_Files/${cross}_hapmapNonRedun.txt )
+    number_of_individual=$(head -n1 $Hapmat_Files/${cross}_hapmapNonRedun.txt | cut -f 12- | sed 's/[^\t]//g' | wc -c)
 
-    > $Hapmat_FIles/${cross}_genotype.txt
-    echo "population_type DH" >> $Hapmat_FIles/${cross}_genotype.txt
-    echo "population_name LG" >> $Hapmat_FIles/${cross}_genotype.txt
-    echo "distance_function kosambi" >> $Hapmat_FIles/${cross}_genotype.txt
-    echo "cut_off_p_value 2.0" >> $Hapmat_FIles/${cross}_genotype.txt
-    echo "no_map_dist 15.0" >> $Hapmat_FIles/${cross}_genotype.txt
-    echo "no_map_size 0" >> $Hapmat_FIles/${cross}_genotype.txt
-    echo "missing_threshold 1.00" >> $Hapmat_FIles/${cross}_genotype.txt
-    echo "estimation_before_clustering no" >> $Hapmat_FIles/${cross}_genotype.txt
-    echo "detect_bad_data yes" >> $Hapmat_FIles/${cross}_genotype.txt
-    echo "objective_function COUNT" >> $Hapmat_FIles/${cross}_genotype.txt
-    echo "number_of_loci $number_of_loci" >> $Hapmat_FIles/${cross}_genotype.txt
-    echo "number_of_individual $number_of_individual" >> $Hapmat_FIles/${cross}_genotype.txt
-    printf "\n" >> $Hapmat_FIles/${cross}_genotype.txt
+    > $Hapmat_Files/${cross}_genotype.txt
+    echo "population_type DH" >> $Hapmat_Files/${cross}_genotype.txt
+    echo "population_name LG" >> $Hapmat_Files/${cross}_genotype.txt
+    echo "distance_function kosambi" >> $Hapmat_Files/${cross}_genotype.txt
+    echo "cut_off_p_value 2.0" >> $Hapmat_Files/${cross}_genotype.txt
+    echo "no_map_dist 15.0" >> $Hapmat_Files/${cross}_genotype.txt
+    echo "no_map_size 0" >> $Hapmat_Files/${cross}_genotype.txt
+    echo "missing_threshold 1.00" >> $Hapmat_Files/${cross}_genotype.txt
+    echo "estimation_before_clustering no" >> $Hapmat_Files/${cross}_genotype.txt
+    echo "detect_bad_data yes" >> $Hapmat_Files/${cross}_genotype.txt
+    echo "objective_function COUNT" >> $Hapmat_Files/${cross}_genotype.txt
+    echo "number_of_loci $number_of_loci" >> $Hapmat_Files/${cross}_genotype.txt
+    echo "number_of_individual $number_of_individual" >> $Hapmat_Files/${cross}_genotype.txt
+    printf "\n" >> $Hapmat_Files/${cross}_genotype.txt
 
-    cat  $Hapmat_FIles/${cross}_hapmapNonRedun.txt | cut -f 1,12- | sed 's/_/Zz/g' | sed 's/\.//g' |  sed 's/\tC\t/\tB\t/g' | sed 's/\/C/\/B/g' | sed 's/\tC/\tB/g'|  sed 's/rs#/locus_name/g' > $InterFiles/intergenotype.txt
-    cat $InterFiles/intergenotype.txt >> $Hapmat_FIles/${cross}_genotype.txt
+    cat  $Hapmat_Files/${cross}_hapmapNonRedun.txt | cut -f 1,12- | sed 's/_/Zz/g' | sed 's/\.//g' |  sed 's/\tC\t/\tB\t/g' | sed 's/\/C/\/B/g' | sed 's/\tC/\tB/g'|  sed 's/rs#/locus_name/g' > $InterFiles/intergenotype.txt
+    cat $InterFiles/intergenotype.txt >> $Hapmat_Files/${cross}_genotype.txt
 
 done
     
 echo "Step 9 complete"
 # # Step 10
 # # Use MSTmap to make a genetic map. could not get this working on the cluster
-# MSTMap.exe $Hapmat_FIles/${cross}_genotype.txt $Maps/$cross_map.txt
+# MSTMap.exe $Hapmat_Files/${cross}_genotype.txt $Maps/$cross_map.txt
 
 
 

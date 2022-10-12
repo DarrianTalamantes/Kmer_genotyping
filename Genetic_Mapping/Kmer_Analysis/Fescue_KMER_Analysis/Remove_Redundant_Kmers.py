@@ -40,7 +40,6 @@ def removeRedundance(hapmatFile):
     # hapfile1 = ["the", "of", "the", "peep", "eat", "the", "leap", "the", "feet", "feet", "feet", "read", "tell", "the"]
     # hapfileArray = np.array([[0],[1],[2],[3],[4],[5],[6],[7],[8],[9],[10],[11],[12],[13]])
     dupes = (list_duplicates_of(hapfile1))
-    print(dupes)
     print(len(dupes))
     # #This is the time limiting step
     # # It may be helpfull to turn this into a dictionary with keys being the row number and
@@ -59,7 +58,6 @@ def list_duplicates_of(hapfile):
             oc_set.add(kmer)
         else:
             res.append(idx)
-    print(res)
     return res
 
 

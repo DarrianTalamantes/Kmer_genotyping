@@ -59,7 +59,8 @@ def main():
     colnames = list(hapmat.columns)
     hapmat = hapmat.to_numpy(dtype='U113')
     precenceAbsance = np.zeros((len(masterkeys), len(progenyfiles) + len(parentfiles)), dtype=str)
-    ACdata = append2hapmat(masterKmers, parentfiles, progenyfiles, parentD, progenyD, precenceAbsance)
+    print("Starting precence absance")
+    ACdata = append2hapmat(masterKmers, parentfiles, progenyfiles, parentD, progenyD, precenceAbsance, cross)
     hapCol = 11
     FinalData = np.zeros(shape=(np.size(masterKmers) + 1, len(hapmat[0])), dtype='U113')
     # Puts in column names
@@ -74,12 +75,13 @@ def main():
         for y in range(len(ACdata)):
             FinalData[y + 1][hapCol] = ACdata[y][x]
         hapCol += 1
+    print("Made it right before saving the hapmap file")
     np.savetxt(save, FinalData, delimiter='\t', fmt='%s')
 
     # This method will use the master kmer file to create a numpy array showing prescence abscence of kmers
 
 
-def append2hapmat(masterKmers, listOfiles1, listOfiles2, directory1, directory2, precenceAbsance):
+def append2hapmat(masterKmers, listOfiles1, listOfiles2, directory1, directory2, precenceAbsance, cross):
     fileNum = 0
     for file1 in listOfiles1:
         tempfile = importfile(directory1 + "/" + file1)
@@ -99,9 +101,7 @@ def append2hapmat(masterKmers, listOfiles1, listOfiles2, directory1, directory2,
             else:
                 precenceAbsance[x][fileNum] = 'C'
         fileNum += 1
-        f = open("counter.txt", "w")
-        f.write(str(fileNum))
-        f.close()
+    print(fileNum-2, " progeny for ", cross)
     return precenceAbsance
 
 #Imports a file into a dictionary
