@@ -1,6 +1,5 @@
 library("pwr")
-install.packages("pwr")
-remove.packages("pwr")
+
 
 # power is the probability that a test will correctly give you a small p-value
 cohen.ES(test = "r", size = "medium")
