@@ -93,34 +93,35 @@ if [ ! -e $Keys ] ; then mkdir $Keys; fi
 
 # # Step 0
 # # This step will create all lists of all predidcted progeny for every combination of parents
-parental_combos=$Keys/All_combos.csv
-predicted_parents=$Keys/predicted_parents_double.csv  # This file is made from "Progeny_Parent_Finder.py"
-progeny_key=$Keys/progeny_key.csv
 
-rm $Keys/*_code.txt
-rm $Keys/*_Parents.txt
-while read -r line
-do 
-    a=$(echo $line | cut -d "," -f 1 )
-    b=$(echo $line | cut -d "," -f 2 | sed s'/ //g')
-    >${Keys}/${a}x${b}_Parents.txt
-    echo "cat $predicted_parents | cut -d "," -f 1-3 | egrep '${a},${b}|${b},${a}'>$Keys/${a}x${b}_code.txt" >> commands.txt
-    echo "${a}_KMERS.txt">>${Keys}/${a}x${b}_Parents.txt
-    echo "${b}_KMERS.txt">>${Keys}/${a}x${b}_Parents.txt
-done <$parental_combos
-cat commands.txt | parallel --jobs 4 --progress
-
-
-rm $Keys/*_Progeny_Final.txt
-for line in $(ls $Keys| grep "code.txt")
-do
-    arrIN=(${line//_/ }) # makes the variable into an array that I sepetate by "_"
-    cross=${arrIN[0]}  # calls the first section of the array
-    Rscript --vanilla match_all_progeny_to_parents_p2.R $progeny_key $Keys/$line ${Keys}/${cross}_Progeny_Final.txt
-    echo "Rscript --vanilla match_all_progeny_to_parents_p2.R $progeny_key $line ${Keys}/${cross}_Progeny_Final.txt"
-done
-
-echo "Step 0 complete"
+# parental_combos=$Keys/All_combos.csv
+# predicted_parents=$Keys/predicted_parents_double.csv  # This file is made from "Progeny_Parent_Finder.py"
+# progeny_key=$Keys/progeny_key.csv
+# 
+# rm $Keys/*_code.txt
+# rm $Keys/*_Parents.txt
+# while read -r line
+# do 
+#     a=$(echo $line | cut -d "," -f 1 )
+#     b=$(echo $line | cut -d "," -f 2 | sed s'/ //g')
+#     >${Keys}/${a}x${b}_Parents.txt
+#     echo "cat $predicted_parents | cut -d "," -f 1-3 | egrep '${a},${b}|${b},${a}'>$Keys/${a}x${b}_code.txt" >> commands.txt
+#     echo "${a}_KMERS.txt">>${Keys}/${a}x${b}_Parents.txt
+#     echo "${b}_KMERS.txt">>${Keys}/${a}x${b}_Parents.txt
+# done <$parental_combos
+# cat commands.txt | parallel --jobs 4 --progress
+# 
+# 
+# rm $Keys/*_Progeny_Final.txt
+# for line in $(ls $Keys| grep "code.txt")
+# do
+#     arrIN=(${line//_/ }) # makes the variable into an array that I sepetate by "_"
+#     cross=${arrIN[0]}  # calls the first section of the array
+#     Rscript --vanilla match_all_progeny_to_parents_p2.R $progeny_key $Keys/$line ${Keys}/${cross}_Progeny_Final.txt
+#     echo "Rscript --vanilla match_all_progeny_to_parents_p2.R $progeny_key $line ${Keys}/${cross}_Progeny_Final.txt"
+# done
+# 
+# echo "Step 0 complete"
 # # Step .5
 # # This step puts kmers that we will be working with into their own direcorty so we only work with them
 

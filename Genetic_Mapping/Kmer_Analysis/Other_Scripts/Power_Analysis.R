@@ -67,8 +67,11 @@ ggplot(bmData_hist, aes(x=value, color=name, fill=name)) +
 
 
 # Create a plot using the cohens D's and N's needed to meet them at good levels
-ggplot(dat, aes(x=xvar, y=yvar)) +
-  geom_point(shape=1
+ggplot(powerA, aes(x=coD, y=N)) +
+  geom_point(shape=16, size=3) +
+  xlab("Cohen's D") +
+  ggtitle("N needed for specific effect sizes with \n power of .8 and p=.05") + 
+  theme(plot.title = element_text(hjust = 0.5))
 
 
 # makes a verticle line on position of graph

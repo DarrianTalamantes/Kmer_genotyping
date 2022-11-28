@@ -16,7 +16,7 @@ plot(r_power)
 
 # d is the cohens D
 # Type is the type of t test (usually two sample or paired)
-t_power <- pwr.t.test(d=.3,
+t_power <- pwr.t.test(d=.5,
                       sig.level = .05,
                       power= .8,
                       type = "two.sample",
