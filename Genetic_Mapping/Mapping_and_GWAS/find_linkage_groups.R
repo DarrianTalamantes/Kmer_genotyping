@@ -10,38 +10,59 @@
 library(reshape2)
 library(tidyverse)
 library(vegan)
-
+library(ggtree)
 
 ############## Script Begin ####################
 # Loading in data and setting variables
 # This code reads a hapmap file, gets rid of metadata, transposes it
 cross <- read.table(
-  "/home/drt83172/Documents/Tall_fescue/Kmer_Genotyping/Kmer_genotyping/Genetic_Mapping/Data/Genotype_Files/301x313_hapmap.txt", 
+  "~/Documents/Tall_fescue/Kmer_Genotyping/Kmer_genotyping/Genetic_Mapping/Data/Genotype_Files/301x313_hapmap.txt", 
   quote="", sep ="\t", row.names = 1, fill = TRUE, comment.char ="", header = TRUE )
 cross <- subset(cross, select = -c(1:10))
 cross.2 <- data.frame(t(cross))
 
 
 # Trying to do clustering with my actual data
-cross_matrix <- as.matrix(cross.2)
-for (row in 1:nrow(cross_matrix)){
-  for (col in 1:ncol(cross_matrix)){
-    if (cross_matrix[row,col] == "A"){
-      cross_matrix[row,col] = 1
+cross_matrix <- as.matrix(cross)
+
+cross_matrix_subset <- as.matrix(cross[1:1000,])
+
+cross_matrix_t <- as.matrix(cross.2)
+
+# Function makes the A's and C's into numerical data
+letter2Number <- function(matrix){
+  matrix2 <- matrix
+  for (row in 1:nrow(matrix)){
+    for (col in 1:ncol(matrix)){
+      if (matrix[row,col] == "A"){
+        matrix2[row,col] = 1
+      }
+      else{
+        matrix2[row,col] = 0
+      }
     }
-    else{
-      cross_matrix[row,col] = 0
-    }
-  }
+  } 
+  return(matrix2)
 }
 
+# cross_matrix_num <- letter2Number(cross_matrix)
+cross_matrix_t_num <- letter2Number(cross_matrix_t)
+cross_matrix_subset_num <- letter2Number(cross_matrix_subset)
 
-cross_distances <- dist(cross_matrix)
-head(cross_distances)
+# Making distance matrix
+cross_distances <- dist(cross_matrix_t_num)
+kmer_distances <- dist(cross_matrix_subset)
+kmer_distances_subset <- dist(cross_matrix_subset_num)
+
+kmer_clusters_subset <- hclust(kmer_distances_subset)
+kmer_clusters <- hclust(kmer_distances)
 cross_clsuters <- hclust(cross_distances)
-plot(cross_clsuters, xaxt='n', ann=FALSE)
 
-ggtree(cross_clsuters)
+kmer_clusters_subset$dist.method
+# tree graphs
+ggtree(cross_clsuters) +
+  geom_tiplab()
+ggtree(kmer_clusters_subset) 
 
 
 # Examples
@@ -60,4 +81,17 @@ head(iris)
 distances <- dist(iris[, 3:4])
 clusters <- hclust(distances)
 plot(clusters)
+
+#ggtree examples
+tree <- rtree(50)
+ggtree(tree)
+ggtree(tree, layout="circular")
+ggtree(tree, branch.length='none')
+
+# example vegclust
+
+vegclust
+
+
+
 
