@@ -19,7 +19,7 @@ cross <- read.table(
   "~/Documents/Tall_fescue/Kmer_Genotyping/Kmer_genotyping/Genetic_Mapping/Data/Genotype_Files/301x313_hapmap.txt", 
   quote="", sep ="\t", row.names = 1, fill = TRUE, comment.char ="", header = TRUE )
 cross <- subset(cross, select = -c(1:10))
-cross.2 <- data.frame(t(cross))
+# cross.2 <- data.frame(t(cross))
 
 
 # Trying to do clustering with my actual data
@@ -27,7 +27,7 @@ cross_matrix <- as.matrix(cross)
 
 cross_matrix_subset <- as.matrix(cross[1:1000,])
 
-cross_matrix_t <- as.matrix(cross.2)
+# cross_matrix_t <- as.matrix(cross.2)
 
 # Function makes the A's and C's into numerical data
 letter2Number <- function(matrix){
@@ -46,11 +46,11 @@ letter2Number <- function(matrix){
 }
 
 # cross_matrix_num <- letter2Number(cross_matrix)
-cross_matrix_t_num <- letter2Number(cross_matrix_t)
+# cross_matrix_t_num <- letter2Number(cross_matrix_t)
 cross_matrix_subset_num <- letter2Number(cross_matrix_subset)
 
 # Making distance matrix
-cross_distances <- dist(cross_matrix_t_num)
+# cross_distances <- dist(cross_matrix_t_num)
 kmer_distances <- dist(cross_matrix_subset)
 kmer_distances_subset <- dist(cross_matrix_subset_num)
 
