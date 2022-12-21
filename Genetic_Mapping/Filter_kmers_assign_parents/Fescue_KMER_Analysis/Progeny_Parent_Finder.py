@@ -7,19 +7,19 @@ import json
 def main():
     # # use line below to test without redoing long step
     # # (I think best_parents variable is phased out 04/12/22)
-    best_parents = pd.read_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv', index_col=0)
+    best_parents = pd.read_csv('/home/drt06/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv', index_col=0)
     args = parse_args()
 
     # # Run R the first time to get All_centers.txt and Predicted_Parents.txt
     # # Args are random seed, files 1-4
-    subprocess.call(['Rscript', '/home/drt83172/Documents/Tall_fescue/Kmer_analyses/Scripts/Kmer_genotyping/Scripts/Score _analysis_auto.R', "10", "/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/Score_table.csv", "/home/drt83172/Documents/Tall_fescue/half_key_parents.txt", "/home/drt83172/Documents/Tall_fescue/half_key_progeny.txt", "/home/drt83172/Documents/Tall_fescue/progeny_key.csv"])
+    subprocess.call(['Rscript', '/home/drt06/Documents/Tall_fescue/Kmer_analyses/Scripts/Kmer_genotyping/Scripts/Score _analysis_auto.R', "10", "/home/drt06/Documents/Tall_fescue/Usefull_Kmers/R_Files/Score_table.csv", "/home/drt06/Documents/Tall_fescue/half_key_parents.txt", "/home/drt06/Documents/Tall_fescue/half_key_progeny.txt", "/home/drt06/Documents/Tall_fescue/progeny_key.csv"])
 
     # # importing data for the first time
-    centers = import_data("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/All_centers.txt")
-    predicted = import_data("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/Predicted_Parents.txt")
-    dead = import_data_csv("/home/drt83172/Documents/Tall_fescue/Plant_Info/Dead_Progeny.csv")
-    depth = pd.read_csv("/home/drt83172/Documents/Tall_fescue/Progeny_vcf/Progeny_depths.txt", sep="\t", header=1)
-    progeny_key = pd.read_csv("/home/drt83172/Documents/Tall_fescue/Sample_to_customer_code.csv", sep=",", header=0)
+    centers = import_data("/home/drt06/Documents/Tall_fescue/Usefull_Kmers/R_Files/All_centers.txt")
+    predicted = import_data("/home/drt06/Documents/Tall_fescue/Usefull_Kmers/R_Files/Predicted_Parents.txt")
+    dead = import_data_csv("/home/drt06/Documents/Tall_fescue/Plant_Info/Dead_Progeny.csv")
+    depth = pd.read_csv("/home/drt06/Documents/Tall_fescue/Progeny_vcf/Progeny_depths.txt", sep="\t", header=1)
+    progeny_key = pd.read_csv("/home/drt06/Documents/Tall_fescue/Sample_to_customer_code.csv", sep=",", header=0)
     progeny_key = progeny_key.rename(columns={"RG_Sample_Code": "Sample"})
     depth = depth.rename(columns={"[3]sample": "Sample"})
     depth = depth.rename(columns={"[10]average depth": "Depth"})
@@ -31,7 +31,7 @@ def main():
     resamples = 100
     resample = resampling_kmeans(centers, predicted, resamples)
     # # activate the line below to make this go fast. Deactivate line above if wantign to do so.
-    # resample = np.loadtxt("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/consistancy.txt", dtype=float)
+    # resample = np.loadtxt("/home/drt06/Documents/Tall_fescue/Usefull_Kmers/consistancy.txt", dtype=float)
 
 
     # # With this we set the cutoff for the resamples and make an array of predicted parents
@@ -39,39 +39,39 @@ def main():
     print("beat this is = ", beat_this)
     print("##############################")
     parents_genetics = resample_cutoof(resample, beat_this)
-    parents_genetics.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv')
+    parents_genetics.to_csv('/home/drt06/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv')
     usable_parents_genetics = find_usable_parents(parents_genetics, dead)
-    usable_parents_genetics.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_genetics.csv')
+    usable_parents_genetics.to_csv('/home/drt06/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_genetics.csv')
     print(len(usable_parents_genetics), "genetics ######################")
 
 
 
     # # Confirms genetic data with maternal list and throws out those that dont work with both
-    best_parents = pd.read_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv', index_col=0)
+    best_parents = pd.read_csv('/home/drt06/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv', index_col=0)
     double_confirmed_parents = maternal_list_confirmer(best_parents)
-    double_confirmed_parents.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_double.csv')
+    double_confirmed_parents.to_csv('/home/drt06/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_double.csv')
     usable_double_confirmed = find_usable_parents(double_confirmed_parents, dead)
-    usable_double_confirmed.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_double.csv')
+    usable_double_confirmed.to_csv('/home/drt06/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_double.csv')
     print(len(usable_double_confirmed), "double ############################")
 
     # # adds maternal list to genetic data
-    best_parents = pd.read_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv', index_col=0)
+    best_parents = pd.read_csv('/home/drt06/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_genetics.csv', index_col=0)
     maternal_list_added = maternal_list_adder(best_parents)
-    maternal_list_added.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_mat_added.csv')
+    maternal_list_added.to_csv('/home/drt06/Documents/Tall_fescue/Usefull_Kmers/predicted_parents_mat_added.csv')
     usable_maternal_list_added = find_usable_parents(maternal_list_added, dead)
-    usable_maternal_list_added.to_csv('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_mat_added.csv')
+    usable_maternal_list_added.to_csv('/home/drt06/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_mat_added.csv')
     print(len(usable_maternal_list_added), "maternal list added ###########################")
 
     # # Uses the usable data frames created from find_usable_parents(double confirmed method to make a list of reciprical parents
     # # Semi unfinished
     # double_usable = pd.read_csv(
-    #     "/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_double.csv", index_col=0)
+    #     "/home/drt06/Documents/Tall_fescue/Usefull_Kmers/usable_predicted_parents_double.csv", index_col=0)
     # reciprocal(double_usable)
 
 # # merge depth data with Customer Codes.
 def depth_normalizer(depth, progeny_key):
     depth = pd.merge(depth, progeny_key, on='Sample')
-    depth.to_csv("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/sample_depth.txt", sep=",")
+    depth.to_csv("/home/drt06/Documents/Tall_fescue/Usefull_Kmers/sample_depth.txt", sep=",")
 
 # # Uses the resampling method result and cuts off stuff that dont appear in enough resamples
 def resample_cutoof(resample, beat_this):
@@ -87,7 +87,7 @@ def resample_cutoof(resample, beat_this):
                     if position2 == 0:
                         resample_final[row][position] = predicted_parent
                         break
-    single_sample = pd.read_csv("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/single_sample.txt", sep="\t", index_col=0)
+    single_sample = pd.read_csv("/home/drt06/Documents/Tall_fescue/Usefull_Kmers/single_sample.txt", sep="\t", index_col=0)
     resample_final = pd.DataFrame(resample_final, index=single_sample.index,
                                   columns=single_sample.columns)
     return resample_final
@@ -162,13 +162,13 @@ def resampling_kmeans(centers, predicted, resmaples):
     resample = np.zeros((len(found_parents_genetics), len(found_parents_genetics.columns)), dtype=int)
     for seed in range(resmaples):
         subprocess.call(['Rscript',
-                         '/home/drt83172/Documents/Tall_fescue/Kmer_analyses/Scripts/Kmer_genotyping/Scripts/Score _analysis_auto.R',
-                         str(seed), "/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/Score_table.csv",
-                         "/home/drt83172/Documents/Tall_fescue/half_key_parents.txt",
-                         "/home/drt83172/Documents/Tall_fescue/half_key_progeny.txt",
-                         "/home/drt83172/Documents/Tall_fescue/progeny_key.csv"])
-        centers = import_data("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/All_centers.txt")
-        predicted = import_data("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/Predicted_Parents.txt")
+                         '/home/drt06/Documents/Tall_fescue/Kmer_analyses/Scripts/Kmer_genotyping/Scripts/Score _analysis_auto.R',
+                         str(seed), "/home/drt06/Documents/Tall_fescue/Usefull_Kmers/R_Files/Score_table.csv",
+                         "/home/drt06/Documents/Tall_fescue/half_key_parents.txt",
+                         "/home/drt06/Documents/Tall_fescue/half_key_progeny.txt",
+                         "/home/drt06/Documents/Tall_fescue/progeny_key.csv"])
+        centers = import_data("/home/drt06/Documents/Tall_fescue/Usefull_Kmers/R_Files/All_centers.txt")
+        predicted = import_data("/home/drt06/Documents/Tall_fescue/Usefull_Kmers/R_Files/Predicted_Parents.txt")
         found_parents_genetics = parent_finder(centers, predicted)
         found_parents_genetics_array = found_parents_genetics.to_numpy()
         for row in range(len(resample)):
@@ -179,8 +179,8 @@ def resampling_kmeans(centers, predicted, resmaples):
                 parent_column = column_finder(predicted_parent, True)
                 parent_column = int(parent_column)
                 resample[row][parent_column] += 1
-    found_parents_genetics.to_csv("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/single_sample.txt", sep="\t")
-    np.savetxt("/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/consistancy.txt", resample, delimiter='\t')
+    found_parents_genetics.to_csv("/home/drt06/Documents/Tall_fescue/Usefull_Kmers/single_sample.txt", sep="\t")
+    np.savetxt("/home/drt06/Documents/Tall_fescue/Usefull_Kmers/consistancy.txt", resample, delimiter='\t')
     return resample
 
 
@@ -277,7 +277,7 @@ def find_usable_parents(predicted_parents, dead):
     usless_parents = not_enough_parents.symmetric_difference(too_many_parents)  # the amount usless here is correct
     usless_parents = list(usless_parents)
     # # only use this line if you wanna know a list of usless parents
-    # with open('/home/drt83172/Documents/Tall_fescue/Usefull_Kmers/R_Files/Usless_Parents.txt', 'w') as f:
+    # with open('/home/drt06/Documents/Tall_fescue/Usefull_Kmers/R_Files/Usless_Parents.txt', 'w') as f:
     #     f.write(json.dumps(usless_parents))
     print(len(too_many_parents), " have too many parents")
     print(len(not_enough_parents), " have too few parents")
@@ -285,17 +285,17 @@ def find_usable_parents(predicted_parents, dead):
         predicted_parents = predicted_parents.drop(usless_parents[i])
 
     # # Uses list of dead progeny and gets rid of them
-    deads = 0
-    deadlist = np.zeros((len(dead), 1), dtype='U100')
-    for i in range(len(deadlist)):
-        deadlist[i] = dead[i][0] + "-" + dead[i][1]
-    for i in range(len(deadlist)):
-        dead_one = deadlist[i]
-        dead_one = dead_one[-1]
-        if dead_one not in usless_parents:
-            predicted_parents = predicted_parents.drop(dead_one)
-            deads += 1
-    print(deads, " got taken out for being dead af")
+    # deads = 0
+    # deadlist = np.zeros((len(dead), 1), dtype='U100')
+    # for i in range(len(deadlist)):
+    #     deadlist[i] = dead[i][0] + "-" + dead[i][1]
+    # for i in range(len(deadlist)):
+    #     dead_one = deadlist[i]
+    #     dead_one = dead_one[-1]
+    #     if dead_one not in usless_parents:
+    #         predicted_parents = predicted_parents.drop(dead_one)
+    #         deads += 1
+    # print(deads, " got taken out for being dead af")
     return predicted_parents
 
 

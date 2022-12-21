@@ -3,16 +3,15 @@
 # Author Darrian Talamantes
 
 #variables 
-parental_combos=/home/drt83172/Documents/Tall_fescue/Plant_Info/Match_Parent_Data/All_combos.csv
-predicted_parents=/home/drt83172/Documents/Tall_fescue/Plant_Info/Match_Parent_Data/predicted_parents_double.csv
-progeny_key=/home/drt83172/Documents/Tall_fescue/Plant_Info/Match_Parent_Data/progeny_key.csv
+parental_combos=/home/drt06/Documents/Tall_fescue/Plant_Info/Match_Parent_Data/All_combos.csv
+predicted_parents=/home/drt06/Documents/Tall_fescue/Plant_Info/Match_Parent_Data/usable_predicted_parents_double.csv
+progeny_key=/home/drt06/Documents/Tall_fescue/Plant_Info/Match_Parent_Data/progeny_key.csv
 
 
-# The file predicted_parents_double.csv was created uisng the meternal list to check the predicted genetic parents
-# The file usable_predicted_parents_double.csv also adds in the dead progeny list to remove even more progeny.
+# The file usable_predicted_parents_double.csv was created uisng the meternal list to check the predicted genetic parents
+# It got rid of any progeny that did not have exactly two parents and leaves dead plants in to have a stronger analysis.
 
-
-
+>commands.txt
 while read -r line
 do 
 a=$(echo $line | cut -d "," -f 1 )
@@ -29,6 +28,7 @@ cat commands.txt | parallel --jobs 4 --progress
 
 for line in $(ls | grep "code.txt")
 do
+echo "line is "$line 
 arrIN=(${line//_/ })
 cross=${arrIN[0]}
 Rscript --vanilla match_all_progeny_to_parents_p2.R $progeny_key $line ${cross}_Progeny_Final.txt
