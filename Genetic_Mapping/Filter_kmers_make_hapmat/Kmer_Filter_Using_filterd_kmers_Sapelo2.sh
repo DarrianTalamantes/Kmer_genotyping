@@ -1,12 +1,12 @@
 #!/bin/bash
 #HEADER FOR SUBMITTED SCRIPTS
 #SBATCH --job-name=Progeny_Filtering
-#SBATCH --partition=batch
+#SBATCH --partition=wallace_p
 #SBATCH  --nodes=1
 #SBATCH --ntasks-per-node=10
-#SBATCH --time=100:00:00
+#SBATCH --time=160:00:00
 #SBATCH --export=NONE
-#SBATCH --mem=110gb
+#SBATCH --mem=100gb
 #SBATCH --mail-user=drt83172@uga.edu
 #SBATCH --mail-type=END,FAIL
 #SBATCH --output=/scratch/drt83172/Wallace_lab/TallFescue/Scripts/OutFiles/%x_%j.out 
@@ -103,50 +103,50 @@ cat $progeny_key | sed s'/KMERS/KMERS_Rready/'g > $Keys/progeny_key_Rready.csv #
 progeny_key=$Keys/progeny_key_Rready.csv
 
 
-# rm $Keys/*_code.txt
-# rm $Keys/*_Parents.txt
-# >commands.txt
-# while read -r line
-# do 
-#     a=$(echo $line | cut -d "," -f 1 )
-#     b=$(echo $line | cut -d "," -f 2 | sed s'/ //g')
-#     >${Keys}/${a}x${b}_Parents.txt
-#     echo "cat $predicted_parents | cut -d "," -f 1-3 | egrep '${a},${b}|${b},${a}'>$Keys/${a}x${b}_code.txt" >> commands.txt
-#     echo "${a}_KMERS_Stage2_Rready">>${Keys}/${a}x${b}_Parents.txt
-#     echo "${b}_KMERS_Stage2_Rready">>${Keys}/${a}x${b}_Parents.txt
-# done <$parental_combos
-# cat commands.txt | parallel --jobs 4 --progress
+rm $Keys/*_code.txt
+rm $Keys/*_Parents.txt
+>commands.txt
+while read -r line
+do 
+    a=$(echo $line | cut -d "," -f 1 )
+    b=$(echo $line | cut -d "," -f 2 | sed s'/ //g')
+    >${Keys}/${a}x${b}_Parents.txt
+    echo "cat $predicted_parents | cut -d "," -f 1-3 | egrep '${a},${b}|${b},${a}'>$Keys/${a}x${b}_code.txt" >> commands.txt
+    echo "${a}_KMERS_Stage2_Rready.txt">>${Keys}/${a}x${b}_Parents.txt
+    echo "${b}_KMERS_Stage2_Rready.txt">>${Keys}/${a}x${b}_Parents.txt
+done <$parental_combos
+cat commands.txt | parallel --jobs 4 --progress
 
 
-# rm $Keys/*_Progeny_Final.txt
-# for line in $(ls $Keys| grep "code.txt")
-# do
-#     arrIN=(${line//_/ }) # makes the variable into an array that I sepetate by "_"
-#     cross=${arrIN[0]}  # calls the first section of the array
-#     Rscript --vanilla match_all_progeny_to_parents_p2.R $progeny_key $Keys/$line ${Keys}/${cross}_Progeny_Final.txt
-# done
+rm $Keys/*_Progeny_Final.txt
+for line in $(ls $Keys| grep "code.txt")
+do
+    arrIN=(${line//_/ }) # makes the variable into an array that I sepetate by "_"
+    cross=${arrIN[0]}  # calls the first section of the array
+    Rscript --vanilla match_all_progeny_to_parents_p2.R $progeny_key $Keys/$line ${Keys}/${cross}_Progeny_Final.txt
+done
 
-# echo "Step 0 complete"
+echo "Step 0 complete"
 
-# # # Step 0.1
-# # #  This step takes the Rreadyfiles and goes through the files to delete kmers that have a 0.
-# # # This is necessary because the rest of the program assumes if a KMER appers it is a non zero value on the apperence column
-# >$InterFiles/deleteThis.txt
-# for file in $(ls $Parents_R_ready)
-# do 
-#     echo "cat $Parents_R_ready/$file | grep -v $'\t0' > $Parents_R_ready_no_0s/$file" >> $InterFiles/deleteThis.txt
-# done
-# cat $InterFiles/deleteThis.txt | parallel --jobs 3 --progress
+# # Step 0.1
+# #  This step takes the Rreadyfiles and goes through the files to delete kmers that have a 0.
+# # This is necessary because the rest of the program assumes if a KMER appers it is a non zero value on the apperence column
+>$InterFiles/deleteThis.txt
+for file in $(ls $Parents_R_ready)
+do 
+    echo "cat $Parents_R_ready/$file | grep -v $'\t0' > $Parents_R_ready_no_0s/$file" >> $InterFiles/deleteThis.txt
+done
+cat $InterFiles/deleteThis.txt | parallel --jobs 3 --progress
 
-# >$InterFiles/deleteThis.txt
-# for file in $(ls $Progeny_R_ready)
-# do 
-#     echo "cat $Progeny_R_ready/$file | grep -v $'\t0' > $Progeny_R_ready_no_0s/$file" >> $InterFiles/deleteThis.txt
-# done
-# cat $InterFiles/deleteThis.txt | parallel --jobs 6 --progress
-# rm $InterFiles/deleteThis.txt
+>$InterFiles/deleteThis.txt
+for file in $(ls $Progeny_R_ready)
+do 
+    echo "cat $Progeny_R_ready/$file | grep -v $'\t0' > $Progeny_R_ready_no_0s/$file" >> $InterFiles/deleteThis.txt
+done
+cat $InterFiles/deleteThis.txt | parallel --jobs 6 --progress
+rm $InterFiles/deleteThis.txt
 
-# echo "Step 0.1 complete"
+echo "Step 0.1 complete"
 # # Step .5
 # # This step puts kmers that we will be working with into their own direcorty so we only work with them
 
@@ -257,6 +257,7 @@ do
     # # Step 9
     # # Create a genotype file from hapmap file that can be used with MSTmap
     # # First we create the header necessary for mstMap and then we append the genotype file
+    # # A in hapmat means kmer is present. C means its missing.
     number_of_loci=$(awk 'END { print NR - 1 }' $Hapmat_Files/${cross}_hapmapNonRedun.txt )
     number_of_individual=$(head -n1 $Hapmat_Files/${cross}_hapmapNonRedun.txt | cut -f 12- | sed 's/[^\t]//g' | wc -c)
 

@@ -24,22 +24,24 @@ ref_genome="/home/drt06/Documents/Tall_fescue/Kmer_Genotyping/Kmer_genotyping/Ge
 # ex: kmerNumber_progName : >01_301-41-2
 for file in $(ls $kmers)
 do
-    a=$(echo $file | cut -d "." -f 1)
-    cat ${kmers}$file | cut -f 1 | sed a\>${a} > $Intermediates${a}.fasta
-    sed -i "1 i\>$a" $Intermediates${a}.fasta
+    arrIN=(${file//./ }) 
+    python fasta_maker.py -kmer $kmers/$file -s $Intermediates/${arrIN[0]}.fasta
 done
 
 # Carry out BWA alignments between kmers and lolium pernne
  
 
 
-# bwa commands to get alignment correct
-for file in $(ls $Intermediates | grep ".fasta")
-do
-a=$(echo $file | cut -d "." -f 1)
-bwa aln $ref_genome $Intermediates${file} > $Intermediates${a}.sai
-bwa samse $ref_genome $Intermediates${a}.sai $Intermediates${file} > $Intermediates${a}.sam
-done
+# # bwa commands to get alignment correct
+# for file in $(ls $Intermediates | grep ".fasta")
+# do
+# a=$(echo $file | cut -d "." -f 1)
+# bwa aln $ref_genome $Intermediates${file} > $Intermediates${a}.sai
+# bwa samse $ref_genome $Intermediates${a}.sai $Intermediates${file} > $Intermediates${a}.sam
+# done
+
+# # seperate files by chromosome to use those as the linkage groups
+# for file in (ls $Intermediates | grep ".sam")
 
 # bwa aln /home/drt06/Documents/Tall_fescue/Kmer_Genotyping/Kmer_genotyping/Genetic_Mapping/Data/Ref_Genomes/Lolium_perenne/Loliumpernne_genome.fasta poopy.txt > result.sai 
 # bwa samse /home/drt06/Documents/Tall_fescue/Kmer_Genotyping/Kmer_genotyping/Genetic_Mapping/Data/Ref_Genomes/Lolium_perenne/Loliumpernne_genome.fasta result.sai poopy.txt > align.sam
